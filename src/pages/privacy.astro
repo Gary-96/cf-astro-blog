@@ -1,0 +1,228 @@
+---
+import Base from "@/layouts/Base.astro";
+import { siteConfig } from "@/lib/types";
+
+const description = "隐私政策（Privacy Policy）：说明本博客如何收集、使用和保护用户数据，以及第三方广告供应商的 Cookie 使用情况。";
+---
+
+<Base title={`隐私政策 · ${siteConfig.name}`} description={description}>
+	<div class="page-prose">
+		<div class="page-hero-glass">
+			<span class="page-kicker">Privacy</span>
+			<h1 class="page-title-large">隐私政策</h1>
+			<p class="page-lead">
+				最后更新日期：2026 年 1 月 1 日。本政策适用于 blog.gnnis.com（以下简称"本站"）。
+			</p>
+		</div>
+
+		<div class="privacy-content glass-panel">
+			<h2 class="privacy-h2">一、我们收集哪些信息</h2>
+			<p class="privacy-p">
+				本站使用第三方分析服务记录基础访问数据，用于了解读者来源与阅读习惯。收集的信息包括：
+			</p>
+			<ul class="privacy-list">
+				<li>访问日期与时间</li>
+				<li>浏览器类型与操作系统</li>
+				<li> referrer 来源页面</li>
+				<li>访问的页面路径</li>
+				<li>设备类型（桌面 / 移动）</li>
+			</ul>
+			<p class="privacy-p">
+				我们<strong>不会</strong>收集您的个人身份信息（如姓名、真实邮箱、IP 地址等），也不会进行用户画像或跨站点追踪。
+			</p>
+
+			<h2 class="privacy-h2">二、第三方广告供应商（Google AdSense）</h2>
+			<p class="privacy-p">
+				本站可能使用 <strong>Google AdSense</strong> 服务展示广告。Google 作为第三方广告供应商，会使用 Cookie 向用户投放个性化广告。
+			</p>
+			<ul class="privacy-list">
+				<li>Google 使用 <code>DoubleClick</code> Cookie 或其他类似技术投放广告。</li>
+				<li>用户可以访问 <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer">Google 广告设置中心</a> 选择停用个性化广告。</li>
+				<li>您也可以访问 <a href="http://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">aboutads.info</a> 了解更多信息并做出选择。</li>
+			</ul>
+			<p class="privacy-p">
+				使用 Google AdSense 即表示您同意上述数据处理方式。如果您不希望被用于个性化广告展示，请访问上述链接进行设置。
+			</p>
+
+			<h2 class="privacy-h2">三、Cookie 的使用</h2>
+			<p class="privacy-p">
+				本站使用以下类型的 Cookie：
+			</p>
+			<ul class="privacy-list">
+				<li><strong>必要 Cookie</strong>：维持登录会话、CSRF 防护等基础功能，无需用户同意。</li>
+				<li><strong>分析 Cookie</strong>：用于统计访问量和用户行为，帮助用户改进网站体验。</li>
+				<li><strong>第三方 Cookie</strong>：由 Google AdSense、Giscus 评论系统等第三方服务设置，受各自隐私政策约束。</li>
+			</ul>
+			<p class="privacy-p">
+				您可以在浏览器设置中管理或删除 Cookie。请注意，禁用某些 Cookie 可能会影响网站的正常使用。
+			</p>
+
+			<h2 class="privacy-h2">四、数据的存储与安全</h2>
+			<p class="privacy-p">
+				所有数据存储在 Cloudflare 平台（D1 数据库、KV 缓存、R2 对象存储）上，享受 Cloudflare 的安全防护与 SLA 保障。我们不会将用户数据出售或共享给任何第三方。
+			</p>
+
+			<h2 class="privacy-h2">五、儿童隐私</h2>
+			<p class="privacy-p">
+				本站不面向未满 13 周岁的儿童提供服务，也不会故意收集儿童的个人信息。如果您认为您的孩子向我们提供了个人信息，请与我们联系。
+			</p>
+
+			<h2 class="privacy-h2">六、联系方式</h2>
+			<p class="privacy-p">
+				如果您对本隐私政策有任何疑问，请通过以下方式联系我们：
+			</p>
+			<ul class="privacy-list">
+				<li>邮箱：<a href="mailto:contact@gnnis.com">contact@gnnis.com</a></li>
+				<li>GitHub：<a href="https://github.com/Gary-96" target="_blank" rel="noopener noreferrer">@Gary-96</a></li>
+			</ul>
+
+			<h2 class="privacy-h2">七、Policy Changes（变更通知）</h2>
+			<p class="privacy-p">
+				我们可能会不时更新本隐私政策。更新后的政策将在本页发布并标注更新日期。建议定期查看本页面以了解最新信息。
+			</p>
+		</div>
+	</div>
+</Base>
+
+<style>
+	.page-prose {
+		display: grid;
+		gap: 2rem;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: clamp(2rem, 4vw, 3.5rem) 0;
+	}
+
+	.page-hero-glass {
+		position: relative;
+		padding: clamp(2rem, 4vw, 3rem);
+		border-radius: var(--radius-panel);
+		background: rgba(var(--card-surface-rgb), calc(var(--hero-card-opacity, 14) / 100));
+		backdrop-filter: blur(var(--hero-card-blur, 18px)) saturate(148%);
+		-webkit-backdrop-filter: blur(var(--hero-card-blur, 18px)) saturate(148%);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		box-shadow: var(--shadow-card);
+		overflow: hidden;
+	}
+
+	.page-hero-glass::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			145deg,
+			rgba(var(--card-sheen-rgb), 0.18) 0%,
+			rgba(var(--card-sheen-rgb), 0.04) 40%,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
+
+	.page-kicker {
+		position: relative;
+		display: inline-block;
+		font-size: 0.72rem;
+		font-family: var(--font-strong);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+		margin-bottom: 0.85rem;
+	}
+
+	.page-title-large {
+		position: relative;
+		font-size: clamp(2.4rem, 1.8rem + 2.4vw, 3.6rem);
+		font-weight: 700;
+		line-height: 1.08;
+		letter-spacing: -0.035em;
+		color: var(--color-text);
+		margin: 0 0 1rem;
+	}
+
+	.page-lead {
+		position: relative;
+		font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.25rem);
+		line-height: 1.72;
+		color: var(--color-text-secondary);
+		max-width: 42rem;
+	}
+
+	.privacy-content {
+		padding: clamp(1.6rem, 3vw, 2.4rem);
+		border-radius: var(--radius-card);
+		background: rgba(var(--card-surface-rgb), calc(var(--post-card-opacity, 14) / 100));
+		backdrop-filter: blur(var(--post-card-blur, 18px)) saturate(130%);
+		-webkit-backdrop-filter: blur(var(--post-card-blur, 18px)) saturate(130%);
+		border: 1px solid rgba(255, 255, 255, 0.11);
+		box-shadow: var(--shadow-card);
+	}
+
+	.privacy-h2 {
+		font-size: 1.18rem;
+		font-weight: 700;
+		letter-spacing: -0.015em;
+		color: var(--color-text);
+		margin: 2rem 0 1rem;
+		padding-bottom: 0.6rem;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.privacy-h2:first-child {
+		margin-top: 0;
+	}
+
+	.privacy-p {
+		font-size: 0.96rem;
+		line-height: 1.8;
+		color: var(--color-text-secondary);
+		margin: 0 0 1rem;
+	}
+
+	.privacy-list {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 1.25rem;
+		display: grid;
+		gap: 0.55rem;
+	}
+
+	.privacy-list li {
+		position: relative;
+		padding-left: 1.15rem;
+		font-size: 0.94rem;
+		line-height: 1.7;
+		color: var(--color-text-secondary);
+	}
+
+	.privacy-list li::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 0.65em;
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: var(--color-accent);
+		opacity: 0.6;
+	}
+
+	.privacy-content a {
+		color: var(--color-accent);
+		text-decoration: none;
+		border-bottom: 1px solid rgba(10, 132, 255, 0.25);
+		transition: border-color var(--transition);
+	}
+
+	.privacy-content a:hover {
+		border-color: var(--color-accent);
+	}
+
+	.privacy-content code {
+		font-family: var(--font-mono);
+		font-size: 0.86em;
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		background: var(--color-bg-tertiary);
+		color: var(--color-accent-hover);
+	}
+</style>

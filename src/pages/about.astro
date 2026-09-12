@@ -1,0 +1,206 @@
+---
+import Base from "@/layouts/Base.astro";
+import { siteConfig } from "@/lib/types";
+
+const description = "了解博主 Gary 的技术背景、建站初衷与写作方向。";
+---
+
+<Base title={`关于 · ${siteConfig.name}`} description={description}>
+	<div class="page-prose">
+		<div class="page-hero-glass">
+			<span class="page-kicker">About</span>
+			<h1 class="page-title-large">关于我</h1>
+			<p class="page-lead">
+				一个对虚假营销和空洞概念过敏的技术实践者，擅长在工程细节里找到真正的价值。
+			</p>
+		</div>
+
+		<div class="about-grid">
+			<section class="about-card glass-panel">
+				<h2 class="about-section-title">我是谁</h2>
+				<p>
+					我是 <strong>Gary</strong>，一名独立开发者与技术写作者。日常关注边缘计算、全栈工程、AI 系统设计与长期有效的技术经验积累。
+				</p>
+				<p>
+					我相信技术写作的意义不在于堆砌概念，而在于把工程判断写清楚、把技术细节写漂亮。每一篇文字都应该是读完之后能立刻上手的那种。
+				</p>
+			</section>
+
+			<section class="about-card glass-panel">
+				<h2 class="about-section-title">技术栈</h2>
+				<ul class="about-tag-list">
+					<li>前端 · Astro / Vue / TypeScript</li>
+					<li>运行时 · Cloudflare Workers / Hono</li>
+					<li>数据库 · D1 / Drizzle ORM</li>
+					<li>存储 · R2 / KV</li>
+					<li>AI · LLM 应用 / 提示工程</li>
+					<li>DevOps · GitHub Actions / CI-CD</li>
+				</ul>
+			</section>
+
+			<section class="about-card glass-panel">
+				<h2 class="about-section-title">这个博客的定位</h2>
+				<p>
+					这里记录我在 Cloudflare 生态、前端工程、调试过程和系统设计里的真实体会。不追逐热点，只写那些值得反复回看的深度内容。
+				</p>
+				<p>
+					界面会继续打磨，但内容先要足够清晰、足够耐读。
+				</p>
+			</section>
+
+			<section class="about-card glass-panel">
+				<h2 class="about-section-title">建站初衷</h2>
+				<p>
+					长期写代码的人都知道，很多知识只存在于脑子里或者本地笔记里。这个博客是我把碎片化的思考整理成体系的尝试，也是对自己学习路径的一个记录。
+				</p>
+				<p>
+					同时，我希望这些内容能帮到其他正在走同一条路的人。如果你在这里找到了一点用处，那就是我在这里写作的全部意义。
+				</p>
+			</section>
+		</div>
+	</div>
+</Base>
+
+<style>
+	.page-prose {
+		display: grid;
+		gap: 2rem;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: clamp(2rem, 4vw, 3.5rem) 0;
+	}
+
+	.page-hero-glass {
+		position: relative;
+		padding: clamp(2rem, 4vw, 3rem);
+		border-radius: var(--radius-panel);
+		background: rgba(var(--card-surface-rgb), calc(var(--hero-card-opacity, 14) / 100));
+		backdrop-filter: blur(var(--hero-card-blur, 18px)) saturate(148%);
+		-webkit-backdrop-filter: blur(var(--hero-card-blur, 18px)) saturate(148%);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		box-shadow: var(--shadow-card);
+		overflow: hidden;
+	}
+
+	.page-hero-glass::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			145deg,
+			rgba(var(--card-sheen-rgb), 0.18) 0%,
+			rgba(var(--card-sheen-rgb), 0.04) 40%,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
+
+	.page-kicker {
+		position: relative;
+		display: inline-block;
+		font-size: 0.72rem;
+		font-family: var(--font-strong);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+		margin-bottom: 0.85rem;
+	}
+
+	.page-title-large {
+		position: relative;
+		font-size: clamp(2.4rem, 1.8rem + 2.4vw, 3.6rem);
+		font-weight: 700;
+		line-height: 1.08;
+		letter-spacing: -0.035em;
+		color: var(--color-text);
+		margin: 0 0 1rem;
+	}
+
+	.page-lead {
+		position: relative;
+		font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.25rem);
+		line-height: 1.72;
+		color: var(--color-text-secondary);
+		max-width: 42rem;
+	}
+
+	.about-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+		gap: 1.25rem;
+	}
+
+	.about-card {
+		padding: clamp(1.4rem, 2vw, 2rem);
+		border-radius: var(--radius-card);
+		background: rgba(var(--card-surface-rgb), calc(var(--post-card-opacity, 14) / 100));
+		backdrop-filter: blur(var(--post-card-blur, 18px)) saturate(130%);
+		-webkit-backdrop-filter: blur(var(--post-card-blur, 18px)) saturate(130%);
+		border: 1px solid rgba(255, 255, 255, 0.11);
+		box-shadow: var(--shadow-card);
+		transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+	}
+
+	.about-card:hover {
+		transform: translateY(-3px);
+		box-shadow:
+			0 24px 56px -36px var(--color-shadow-strong),
+			0 8px 20px -14px var(--color-shadow);
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+
+	.about-section-title {
+		font-size: 1.05rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--color-text);
+		margin: 0 0 1rem;
+		padding-bottom: 0.7rem;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.about-card p {
+		font-size: 0.96rem;
+		line-height: 1.76;
+		color: var(--color-text-secondary);
+		margin: 0 0 0.85rem;
+	}
+
+	.about-card p:last-child {
+		margin-bottom: 0;
+	}
+
+	.about-tag-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.65rem;
+	}
+
+	.about-tag-list li {
+		position: relative;
+		padding-left: 1.1rem;
+		font-size: 0.94rem;
+		line-height: 1.6;
+		color: var(--color-text-secondary);
+	}
+
+	.about-tag-list li::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 0.55em;
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: var(--color-accent);
+		opacity: 0.7;
+	}
+
+	@media (max-width: 640px) {
+		.about-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

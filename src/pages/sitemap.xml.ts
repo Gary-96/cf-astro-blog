@@ -33,6 +33,9 @@ export const GET: APIRoute = async () => {
 		{ url: "/blog", priority: "0.9" },
 		{ url: "/friends", priority: "0.7" },
 		{ url: "/search", priority: "0.5" },
+		{ url: "/about", priority: "0.6" },
+		{ url: "/contact", priority: "0.6" },
+		{ url: "/privacy", priority: "0.6" },
 	];
 
 	const urls = [
