@@ -1,0 +1,26 @@
+---
+import { siteConfig } from "@/lib/types";
+import { defineRedirect } from "astro:transitions/client";
+
+export const GET = () => {
+	return new Response(null, {
+		status: 301,
+		headers: { Location: "/api/auth/login" },
+	});
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<title>重定向中…</title>
+		<script>
+			window.location.replace("/api/auth/login");
+		</script>
+		<link rel="canonical" href={siteConfig.url + "/api/auth/login"} />
+	</head>
+	<body>
+		<p>正在跳转到后台登录页… <a href="/api/auth/login">如果没有自动跳转，请点击此处</a></p>
+	</body>
+</html>
