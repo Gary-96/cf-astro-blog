@@ -21,15 +21,16 @@ export interface CommentConfig {
 }
 
 export const siteConfig: SiteConfig = {
-	name: "My Blog",
+	name: "Gnnis Lab",
 	url: "https://gnnis.com",
-	description: "记录技术实践与工程思考。",
-	author: "Author",
+	description: "全栈工程 · 边缘计算 · AI 工作流（聚焦 Cloudflare、Astro 与 AI Agent 落地实践）",
+	author: "Gary",
 	language: "zh-CN",
 	comments: {
 		provider: "giscus",
 		repo: "Gary-96/cf-astro-blog",
 		repoId: "R_kgDOUX_4lw",
+		// 请在 GitHub Discussions 分类页获取 categoryId，格式类似 DIC_kwDOU...
 		category: "",
 		categoryId: "",
 		mapping: "pathname",
