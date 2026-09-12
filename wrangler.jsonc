@@ -39,7 +39,7 @@
 
 	"vars": {
 		"SITE_NAME": "My Blog",
-		"SITE_URL": "https://blog.gnnis.com",
+		"SITE_URL": "https://gnnis.com",
 		"TURNSTILE_SITE_KEY": ""
 	}
 

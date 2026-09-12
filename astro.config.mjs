@@ -13,7 +13,7 @@ export default defineConfig({
 			enabled: true,
 		},
 	}),
-	site: "https://blog.gnnis.com",
+	site: "https://gnnis.com",
 	vite: {
 		resolve: {
 			alias: {

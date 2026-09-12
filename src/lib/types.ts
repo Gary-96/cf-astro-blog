@@ -22,7 +22,7 @@ export interface CommentConfig {
 
 export const siteConfig: SiteConfig = {
 	name: "My Blog",
-	url: "https://blog.gnnis.com",
+	url: "https://gnnis.com",
 	description: "记录技术实践与工程思考。",
 	author: "Author",
 	language: "zh-CN",
