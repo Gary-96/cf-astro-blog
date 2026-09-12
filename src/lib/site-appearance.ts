@@ -18,6 +18,9 @@ const DEFAULT_NAV_LINKS: SiteNavLink[] = [
 	{ label: "首页", href: "/" },
 	{ label: "归档", href: "/blog" },
 	{ label: "搜索", href: "/search" },
+	{ label: "关于", href: "/about" },
+	{ label: "联系", href: "/contact" },
+	{ label: "隐私政策", href: "/privacy" },
 ];
 
 const DEFAULT_HERO_ACTIONS: SiteNavLink[] = [
