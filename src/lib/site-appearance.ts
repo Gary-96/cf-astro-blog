@@ -119,7 +119,7 @@ export const DEFAULT_SITE_APPEARANCE: SiteAppearance = {
 	postCardBlur: 18,
 	articlePanelOpacity: 14,
 	articlePanelBlur: 18,
-	headerSubtitle: "流畅、克制、持续更新的技术写作",
+		headerSubtitle: "现代 Web 全栈技术、Serverless 实践与独立开发手记",
 	navLinks: [...DEFAULT_NAV_LINKS],
 	navLink1Label: DEFAULT_NAV_LINKS[0].label,
 	navLink1Href: DEFAULT_NAV_LINKS[0].href,
