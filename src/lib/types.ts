@@ -28,8 +28,8 @@ export const siteConfig: SiteConfig = {
 	language: "zh-CN",
 	comments: {
 		provider: "giscus",
-		repo: "",
-		repoId: "",
+		repo: "Gary-96/cf-astro-blog",
+		repoId: "R_kgDOUX_4lw",
 		category: "",
 		categoryId: "",
 		mapping: "pathname",
