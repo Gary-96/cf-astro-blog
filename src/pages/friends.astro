@@ -1,0 +1,261 @@
+---
+import { env } from "cloudflare:workers";
+import { asc, eq } from "drizzle-orm";
+import { friendLinks } from "@/db/schema";
+import Base from "@/layouts/Base.astro";
+import { getDb } from "@/lib/db";
+
+let approvedLinks: Array<{
+	id: number;
+	name: string;
+	siteUrl: string;
+	avatarUrl: string | null;
+	avatarProxyUrl?: string | null;
+	description: string;
+	contact: string;
+}> = [];
+
+function buildFriendAvatarProxyUrl(url: string | null): string | null {
+	if (!url) {
+		return null;
+	}
+
+	return `/api/friend-links/avatar?url=${encodeURIComponent(url)}`;
+}
+
+try {
+	const db = getDb(env.DB);
+
+	approvedLinks = await db
+		.select({
+			id: friendLinks.id,
+			name: friendLinks.name,
+			siteUrl: friendLinks.siteUrl,
+			avatarUrl: friendLinks.avatarUrl,
+			description: friendLinks.description,
+			contact: friendLinks.contact,
+		})
+		.from(friendLinks)
+		.where(eq(friendLinks.status, "approved"))
+		.orderBy(asc(friendLinks.name));
+	approvedLinks = approvedLinks.map((item) => ({
+		...item,
+		avatarProxyUrl: buildFriendAvatarProxyUrl(item.avatarUrl),
+	}));
+} catch {
+	// D1 未绑定时回退为空列表
+}
+---
+
+<Base title="友链" description="展示已经通过审核的友情链接。友链申请请从入口卡片进入独立页面。">
+	<section class="friends-hero glass-panel">
+		<span class="section-kicker">友情链接</span>
+		<h1 class="page-title">友链</h1>
+		<p class="page-intro">这里展示已经通过审核的站点。申请入口放在列表下方，点击进入独立申请页填写资料。</p>
+	</section>
+
+	<section class="friends-list glass-panel">
+		<div class="section-head">
+			<h2 class="section-heading">友链</h2>
+			<p class="results-summary">共 {approvedLinks.length} 个站点</p>
+		</div>
+
+		{approvedLinks.length > 0 ? (
+			<ul class="friend-link-list">
+				{approvedLinks.map((item) => (
+					<li class="friend-link-item">
+						<div class="friend-link-meta">
+							<div class="friend-link-avatar" aria-hidden="true">
+								{item.avatarUrl ? (
+									<img
+										src={item.avatarProxyUrl || undefined}
+										alt=""
+										loading="lazy"
+										decoding="async"
+										referrerpolicy="no-referrer"
+									/>
+								) : (
+									<span>{item.name.slice(0, 1)}</span>
+								)}
+							</div>
+							<div>
+								<a
+									href={item.siteUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="friend-link-name"
+								>
+									{item.name}
+								</a>
+								{item.description ? <p class="friend-link-desc">{item.description}</p> : null}
+								<p class="friend-link-contact">联系方式：{item.contact}</p>
+							</div>
+						</div>
+					</li>
+				))}
+			</ul>
+		) : (
+			<div class="empty-state">
+				<p>当前还没有公开友链，欢迎申请第一条。</p>
+			</div>
+		)}
+	</section>
+
+	<section class="friend-apply-entry glass-panel" aria-label="友链申请入口">
+		<a href="/friends/apply" class="friend-apply-link">
+			<span class="friend-apply-copy">
+				<strong>友链申请</strong>
+				<small>入口独立展示，点击进入后再填写站点信息，体验和评论区入口类似。</small>
+			</span>
+			<span class="friend-apply-icon" aria-hidden="true">+</span>
+		</a>
+	</section>
+</Base>
+
+<style>
+	.friends-hero,
+	.friends-list,
+	.friend-apply-entry {
+		--glass-panel-opacity: calc(var(--hero-card-opacity, 14) / 100);
+		--glass-panel-blur: var(--hero-card-blur, 18px);
+	}
+
+	.friends-hero {
+		display: grid;
+		gap: 1rem;
+		padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+	}
+
+	.friends-list,
+	.friend-apply-entry {
+		display: grid;
+		gap: 0;
+		overflow: hidden;
+	}
+
+	.friends-list {
+		padding: 1.2rem;
+		display: grid;
+		gap: 1rem;
+	}
+
+	.friend-link-list {
+		list-style: none;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.8rem;
+	}
+
+	.friend-link-item {
+		padding: 0.9rem;
+		border-radius: var(--radius-inner);
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.friend-link-meta {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-start;
+	}
+
+	.friend-link-avatar {
+		width: 2.3rem;
+		height: 2.3rem;
+		border-radius: 50%;
+		overflow: hidden;
+		display: grid;
+		place-items: center;
+		background: rgba(10, 132, 255, 0.14);
+		border: 1px solid rgba(10, 132, 255, 0.26);
+		font-weight: 700;
+		color: var(--color-text);
+		flex-shrink: 0;
+	}
+
+	.friend-link-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.friend-link-name {
+		font-weight: 700;
+		font-size: 1rem;
+	}
+
+	.friend-link-desc,
+	.friend-link-contact {
+		margin-top: 0.3rem;
+		color: var(--color-text-secondary);
+		font-size: 0.88rem;
+	}
+
+	.friend-apply-link {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-md);
+		width: 100%;
+		min-height: 5.5rem;
+		padding: 1.05rem 1.2rem;
+		background: transparent;
+		border: none;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.friend-apply-copy {
+		display: grid;
+		gap: 0.24rem;
+		min-width: 0;
+	}
+
+	.friend-apply-copy strong {
+		font-size: 1rem;
+		color: var(--color-text);
+	}
+
+	.friend-apply-copy small {
+		font-size: 0.86rem;
+		color: var(--color-text-secondary);
+		line-height: 1.65;
+		max-width: 62ch;
+	}
+
+	.friend-apply-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.12);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		font-size: 1.2rem;
+		color: var(--color-accent-hover);
+		transition:
+			transform var(--transition),
+			background-color var(--transition),
+			border-color var(--transition);
+	}
+
+	.friend-apply-link:hover .friend-apply-icon {
+		transform: rotate(90deg);
+		background: var(--color-accent-soft);
+		border-color: rgba(10, 132, 255, 0.16);
+	}
+
+	@media (max-width: 768px) {
+		.friend-link-list {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.friend-apply-link {
+			padding-inline: 1rem;
+			min-height: 5.8rem;
+		}
+	}
+</style>

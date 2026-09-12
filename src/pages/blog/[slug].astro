@@ -1,0 +1,223 @@
+---
+import { env } from "cloudflare:workers";
+import { eq, sql } from "drizzle-orm";
+import { blogCategories, blogPosts } from "@/db/schema";
+import Post from "@/layouts/Post.astro";
+import { getDb } from "@/lib/db";
+import { estimateArticleReadStats } from "@/lib/format";
+import { getPublicPostBySlugCondition } from "@/lib/public-content";
+import {
+	decodeRouteParam,
+	renderSafeMarkdownWithToc,
+	sanitizePlainText,
+	sanitizeSlug,
+} from "@/lib/security";
+import {
+	DEFAULT_SITE_APPEARANCE,
+	getSiteAppearance,
+} from "@/lib/site-appearance";
+
+const VIEW_COUNT_DEDUP_TTL_SECONDS = 60 * 60;
+
+function getClientIpFromRequest(request: Request): string | null {
+	const directIp = sanitizePlainText(
+		request.headers.get("cf-connecting-ip"),
+		64,
+	);
+	if (directIp) {
+		return directIp;
+	}
+
+	const forwarded = sanitizePlainText(
+		request.headers.get("x-forwarded-for"),
+		255,
+	);
+	if (!forwarded) {
+		return null;
+	}
+
+	const first = forwarded
+		.split(",")
+		.map((item) => item.trim())
+		.filter(Boolean)[0];
+	return sanitizePlainText(first, 64) || null;
+}
+
+function buildPostViewDedupKey(slug: string, clientIp: string): string {
+	const safeSlug = sanitizePlainText(slug.toLowerCase(), 120)
+		.replaceAll(/[^a-z0-9-]/gu, "-")
+		.replaceAll(/-+/g, "-")
+		.replaceAll(/^-|-$/g, "");
+	const safeIp = sanitizePlainText(clientIp.toLowerCase(), 64).replaceAll(
+		/[^a-z0-9:._-]/gu,
+		"_",
+	);
+	return `post:view:dedup:${safeSlug || "post"}:${safeIp || "unknown"}`;
+}
+
+async function shouldCountPostViewOnce(options: {
+	env: Env;
+	slug: string;
+	request: Request;
+}): Promise<boolean> {
+	const clientIp = getClientIpFromRequest(options.request);
+	if (!clientIp) {
+		return true;
+	}
+
+	const dedupKey = buildPostViewDedupKey(options.slug, clientIp);
+	const existing = await options.env.SESSION.get(dedupKey);
+	if (existing) {
+		return false;
+	}
+
+	await options.env.SESSION.put(dedupKey, "1", {
+		expirationTtl: VIEW_COUNT_DEDUP_TTL_SECONDS,
+	});
+	return true;
+}
+
+const rawSlug = Astro.params.slug ?? "";
+const slug = sanitizeSlug(decodeRouteParam(rawSlug));
+
+if (!slug) {
+	return Astro.redirect("/blog");
+}
+
+let post: {
+	title: string;
+	content: string;
+	excerpt: string | null;
+	publishedAt: string | null;
+	authorName: string | null;
+	metaTitle: string | null;
+	metaDescription: string | null;
+	canonicalUrl: string | null;
+	featuredImageKey: string | null;
+	featuredImageAlt: string | null;
+	backgroundMode: string | null;
+	backgroundImageKey: string | null;
+	backgroundOpacity: number;
+	backgroundBlur: number;
+	backgroundScale: number;
+	backgroundPositionX: number;
+	backgroundPositionY: number;
+	categoryName: string | null;
+} | null = null;
+let siteAppearance = DEFAULT_SITE_APPEARANCE;
+
+try {
+	const db = getDb(env.DB);
+
+	// 两个独立查询并发执行，减少串行 D1 往返延迟
+	const [appearanceResult, postRows] = await Promise.all([
+		getSiteAppearance(db),
+		db
+			.select({
+				title: blogPosts.title,
+				content: blogPosts.content,
+				excerpt: blogPosts.excerpt,
+				publishedAt: blogPosts.publishedAt,
+				authorName: blogPosts.authorName,
+				metaTitle: blogPosts.metaTitle,
+				metaDescription: blogPosts.metaDescription,
+				canonicalUrl: blogPosts.canonicalUrl,
+				featuredImageKey: blogPosts.featuredImageKey,
+				featuredImageAlt: blogPosts.featuredImageAlt,
+				backgroundMode: blogPosts.backgroundMode,
+				backgroundImageKey: blogPosts.backgroundImageKey,
+				backgroundOpacity: blogPosts.backgroundOpacity,
+				backgroundBlur: blogPosts.backgroundBlur,
+				backgroundScale: blogPosts.backgroundScale,
+				backgroundPositionX: blogPosts.backgroundPositionX,
+				backgroundPositionY: blogPosts.backgroundPositionY,
+				categoryName: blogCategories.name,
+			})
+			.from(blogPosts)
+			.leftJoin(blogCategories, eq(blogPosts.categoryId, blogCategories.id))
+			.where(getPublicPostBySlugCondition(slug))
+			.limit(1),
+	]);
+
+	siteAppearance = appearanceResult;
+	const [row] = postRows;
+
+	if (row) {
+		post = row;
+
+		// 浏览计数失败时不影响正文渲染
+		void (async () => {
+			try {
+				const shouldCount = await shouldCountPostViewOnce({
+					env,
+					slug,
+					request: Astro.request,
+				});
+				if (!shouldCount) {
+					return;
+				}
+
+				await db
+					.update(blogPosts)
+					.set({ viewCount: sql`${blogPosts.viewCount} + 1` })
+					.where(eq(blogPosts.slug, slug))
+					.run();
+			} catch {
+				// 忽略计数异常，避免影响正文渲染
+			}
+		})();
+	}
+} catch {
+	// D1 未绑定时回退到重定向
+}
+
+if (!post) {
+	return Astro.redirect("/blog");
+}
+
+const { html: htmlContent, toc } = await renderSafeMarkdownWithToc(
+	post.content,
+);
+const readingStats = estimateArticleReadStats(post.content);
+const featuredImageUrl = post.featuredImageKey
+	? `/media/${post.featuredImageKey}`
+	: undefined;
+const postBackgroundImageKey =
+	post.backgroundMode === "custom"
+		? post.backgroundImageKey
+		: post.backgroundMode === "cover"
+			? post.featuredImageKey
+			: null;
+const postBackgroundOverride = postBackgroundImageKey
+	? {
+			imageKey: postBackgroundImageKey,
+			opacity: post.backgroundOpacity,
+			blur: post.backgroundBlur,
+			scale: post.backgroundScale,
+			positionX: post.backgroundPositionX,
+			positionY: post.backgroundPositionY,
+		}
+	: undefined;
+---
+
+<Post
+	slug={slug}
+	title={post.metaTitle || post.title}
+	description={post.metaDescription || post.excerpt || undefined}
+	image={featuredImageUrl}
+	canonicalUrl={post.canonicalUrl || undefined}
+	publishedAt={post.publishedAt || undefined}
+	authorName={post.authorName || undefined}
+	categoryName={post.categoryName || undefined}
+	articleSidebarAvatarPath={siteAppearance.articleSidebarAvatarPath || undefined}
+	articleSidebarName={siteAppearance.articleSidebarName}
+	articleSidebarBadge={siteAppearance.articleSidebarBadge}
+	articleSidebarBio={siteAppearance.articleSidebarBio}
+	cjkCharCount={readingStats.cjkCharCount}
+	latinWordCount={readingStats.latinWordCount}
+	estimatedReadingMinutes={readingStats.estimatedReadingMinutes}
+	backgroundOverride={postBackgroundOverride}
+	toc={toc}
+>
+	<Fragment set:html={htmlContent} />
+</Post>

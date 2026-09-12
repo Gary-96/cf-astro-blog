@@ -1,0 +1,62 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"name": "cf-astro-blog",
+	"compatibility_date": "2026-02-10",
+	"compatibility_flags": ["nodejs_compat", "disable_nodejs_process_v2"],
+
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+
+	"observability": {
+		"enabled": true
+	},
+
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "blog",
+			"database_id": "fff56987-6621-4939-b716-ccd5a065828b",
+			"migrations_dir": "drizzle"
+		}
+	],
+
+	"r2_buckets": [
+		{
+			"binding": "MEDIA_BUCKET",
+			"bucket_name": "my-blog-assets"
+		}
+	],
+
+	"kv_namespaces": [
+		{
+			"binding": "SESSION",
+			"id": "a2655e288e384b75a6dde2ea0f3e7b5a"
+		}
+	],
+
+	"vars": {
+		"SITE_NAME": "My Blog",
+		"SITE_URL": "https://blog.gnnis.com",
+		"TURNSTILE_SITE_KEY": ""
+	}
+
+	// 机密变量可通过 `wrangler secret put` 或本地 `.dev.vars` 配置
+	// JWT_SECRET 
+	// ADMIN_USERNAME 
+	// ADMIN_PASSWORD_HASH 
+	// TURNSTILE_SECRET_KEY 
+	// AUTO_DEPLOY_WEBHOOK_URL
+	// AUTO_DEPLOY_WEBHOOK_SECRET
+	// AUTO_DEPLOY_GITHUB_EVENT_TYPE
+	// AI_INTERNAL_API_KEY
+	// AI_PUBLIC_API_KEY
+	// PUBLIC_AI_RATE_LIMIT_PER_MINUTE
+	// PUBLIC_AI_DAILY_LIMIT_PER_IP
+	// MCP_BEARER_TOKEN
+	// MCP_RATE_LIMIT_PER_MINUTE
+	// MCP_AUTH_FAIL_LIMIT_PER_MINUTE
+	// MCP_AUTH_BLOCK_SECONDS
+}

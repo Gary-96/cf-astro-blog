@@ -1,0 +1,211 @@
+---
+import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
+import { siteAppearanceSettings } from "@/db/schema";
+import Base from "@/layouts/Base.astro";
+import { getDb } from "@/lib/db";
+
+const applyStatus = Astro.url.searchParams.get("apply") || "";
+const turnstileSiteKey = String(env.TURNSTILE_SITE_KEY || "").trim();
+const turnstileEnabled = turnstileSiteKey.length > 0;
+let friendApplyNotice = "";
+
+try {
+	const db = getDb(env.DB);
+	const [settingsRow] = await db
+		.select({
+			friendApplyNotice: siteAppearanceSettings.friendApplyNotice,
+		})
+		.from(siteAppearanceSettings)
+		.where(eq(siteAppearanceSettings.id, 1))
+		.limit(1);
+
+	friendApplyNotice = settingsRow?.friendApplyNotice ?? "";
+} catch {
+	friendApplyNotice = "";
+}
+
+function getApplyMessage(status: string) {
+	switch (status) {
+		case "success":
+			return {
+				type: "success",
+				text: "申请已提交，审核通过后会显示在友链列表。",
+			};
+		case "duplicate":
+			return {
+				type: "error",
+				text: "该站点已存在申请或已在友链列表中，请勿重复提交。",
+			};
+		case "invalid":
+			return {
+				type: "error",
+				text: "申请信息不完整或格式不合法，请检查后重试。",
+			};
+		case "challenge-failed":
+			return {
+				type: "error",
+				text: "人机验证未通过，请完成验证后重试。",
+			};
+		default:
+			return null;
+	}
+}
+
+const applyMessage = getApplyMessage(applyStatus);
+---
+
+<Base title="友链申请" description="提交友链申请，审核通过后会展示在友链列表。">
+	<section class="friends-apply-hero glass-panel">
+		<span class="section-kicker">友情链接</span>
+		<h1 class="page-title">友链申请</h1>
+		<p class="page-intro">填写站点资料后提交，默认进入待审核。通过后会出现在友链页。</p>
+		<a href="/friends" class="button button-secondary">返回友链列表</a>
+	</section>
+
+	{
+		friendApplyNotice ? (
+			<section class="friends-apply-notice glass-panel">
+				<h2>申请须知</h2>
+				<p class="page-intro">{friendApplyNotice}</p>
+			</section>
+		) : null
+	}
+
+	<section class="friends-apply-box glass-panel">
+		{applyMessage ? (
+			<div class:list={["alert", applyMessage.type === "success" ? "alert-success" : "alert-error"]}>
+				{applyMessage.text}
+			</div>
+		) : null}
+
+		<form method="post" action="/api/friend-links/apply" class="friends-apply-form">
+			<label>
+				<span>站点名称</span>
+				<input type="text" name="name" maxlength="80" required />
+			</label>
+			<label>
+				<span>站点 URL</span>
+				<input type="url" name="siteUrl" maxlength="240" placeholder="https://example.com" required />
+			</label>
+			<label>
+				<span>头像 URL（可选）</span>
+				<input type="url" name="avatarUrl" maxlength="240" placeholder="https://example.com/avatar.png" />
+			</label>
+			<label>
+				<span>站点简介（可选）</span>
+				<textarea name="description" rows="3" maxlength="320"></textarea>
+			</label>
+			<label>
+				<span>联系方式</span>
+				<input type="text" name="contact" maxlength="120" placeholder="邮箱 / 社媒账号" required />
+			</label>
+			<label>
+				<span>备注（可选）</span>
+				<textarea name="note" rows="2" maxlength="320"></textarea>
+			</label>
+			{turnstileEnabled ? (
+				<div class="turnstile-row">
+					<div
+						class="cf-turnstile"
+						data-sitekey={turnstileSiteKey}
+						data-theme="auto"
+						data-action="friend_link_apply"
+					></div>
+				</div>
+			) : (
+				<p class="turnstile-hint">当前未配置 Turnstile Site Key，发布前请在环境变量中补齐。</p>
+			)}
+			<button type="submit" class="button">提交申请</button>
+		</form>
+	</section>
+
+	{turnstileEnabled ? (
+		<script
+			is:inline
+			src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+			async
+			defer
+		></script>
+	) : null}
+</Base>
+
+<style>
+	.friends-apply-hero,
+	.friends-apply-notice,
+	.friends-apply-box {
+		--glass-panel-opacity: calc(var(--hero-card-opacity, 14) / 100);
+		--glass-panel-blur: var(--hero-card-blur, 18px);
+		display: grid;
+		gap: 1rem;
+		padding: clamp(1.3rem, 1rem + 1.6vw, 2.1rem);
+	}
+
+	.friends-apply-notice h2 {
+		margin: 0;
+		font-size: 1.05rem;
+	}
+
+	.friends-apply-notice p {
+		margin: 0;
+		white-space: pre-line;
+	}
+
+	.friends-apply-form {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.friends-apply-form label {
+		display: grid;
+		gap: 0.4rem;
+	}
+
+	.friends-apply-form span {
+		font-size: 0.87rem;
+		color: var(--color-text-muted);
+	}
+
+	.friends-apply-form input,
+	.friends-apply-form textarea {
+		width: 100%;
+		padding: 0.78rem 0.9rem;
+		border-radius: var(--radius-inner);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-text);
+	}
+
+	.friends-apply-form textarea {
+		resize: vertical;
+	}
+
+	.alert {
+		padding: 0.75rem 0.85rem;
+		border-radius: var(--radius-inner);
+		font-size: 0.86rem;
+	}
+
+	.alert-success {
+		background: rgba(22, 163, 74, 0.14);
+		border: 1px solid rgba(22, 163, 74, 0.22);
+		color: #5be08b;
+	}
+
+	.alert-error {
+		background: rgba(239, 68, 68, 0.14);
+		border: 1px solid rgba(239, 68, 68, 0.22);
+		color: #ff8d8d;
+	}
+
+	.turnstile-row {
+		display: flex;
+		justify-content: flex-start;
+	}
+
+	.turnstile-hint {
+		margin: 0;
+		font-size: 0.84rem;
+		color: var(--color-text-muted);
+	}
+</style>
