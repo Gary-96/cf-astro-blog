@@ -42,7 +42,7 @@ function applySecurityHeaders(pathname: string, response: Response) {
 				"frame-ancestors 'none'",
 				"object-src 'none'",
 				"form-action 'self'",
-				"script-src 'self' https://challenges.cloudflare.com",
+				"script-src 'self' https://challenges.cloudflare.com https://pagead2.googlesyndication.com",
 				"style-src 'self' 'unsafe-inline'",
 				"img-src 'self' data: https://avatars.githubusercontent.com",
 				"font-src 'self'",
