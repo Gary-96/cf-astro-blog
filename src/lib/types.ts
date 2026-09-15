@@ -56,3 +56,26 @@ export interface PaginatedResponse<T> {
 }
 
 export type PostStatus = "draft" | "published" | "scheduled";
+
+// ─── 默认导航链接 ────────────────────────────────────────────────────────────
+// 此数组是站点导航栏的初始状态。后台「外观设置」中修改后，数据库值优先于此处。
+export const DEFAULT_NAV_LINKS: SiteNavLink[] = [
+	{ label: "首页", href: "/" },
+	{ label: "归档", href: "/blog" },
+	{ label: "搜索", href: "/search" },
+	{ label: "关于", href: "/about" },
+	{ label: "联系", href: "/contact" },
+	{ label: "隐私政策", href: "/privacy" },
+];
+
+// ─── 首页 Hero 区域 CTA 按钮 ────────────────────────────────────────────────
+export const DEFAULT_HERO_ACTIONS: SiteNavLink[] = [
+	{ label: "进入归档", href: "/blog" },
+	{ label: "站内搜索", href: "/search" },
+];
+
+// ─── 导航链接类型导出 ────────────────────────────────────────────────────────
+export interface SiteNavLink {
+	label: string;
+	href: string;
+}

@@ -16,10 +16,10 @@ import {
 	getSiteAppearance,
 	invalidateSiteAppearanceCache,
 	resolveAiSettingsWithSecrets,
-	type SiteNavLink,
 	saveAiSettings,
 	saveSiteAppearance,
 } from "@/lib/site-appearance";
+import type { SiteNavLink } from "@/lib/types";
 import {
 	type AdminAppEnv,
 	assertCsrfToken,

@@ -1,0 +1,9 @@
+/*
+ * 字体加载 — 精简策略
+ * 
+ * 移除：Lora Variable（双文件）、Cormorant Garamond、Shippori Mincho（双文件）、
+ *       LXGW WenKai（双文件）—— 合计约 800ms 阻塞
+ * 保留：Space Grotesk 700（标题/导航）
+ * 中文：使用系统字体栈，无需网络请求
+ */
+@import "@fontsource/space-grotesk/700.css";
