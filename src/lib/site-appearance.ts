@@ -122,7 +122,7 @@ export const DEFAULT_SITE_APPEARANCE: SiteAppearance = {
 	postCardBlur: 18,
 	articlePanelOpacity: 14,
 	articlePanelBlur: 18,
-		headerSubtitle: "现代 Web 全栈技术、Serverless 实践与独立开发手记",
+	headerSubtitle: "现代 Web 全栈技术、Serverless 实践与独立开发手记",
 	navLinks: [...DEFAULT_NAV_LINKS],
 	navLink1Label: DEFAULT_NAV_LINKS[0].label,
 	navLink1Href: DEFAULT_NAV_LINKS[0].href,
@@ -780,12 +780,17 @@ export async function getSiteAppearance(db: Database): Promise<SiteAppearance> {
 		return _siteAppearancePending;
 	}
 
-	_siteAppearancePending = fetchSiteAppearance(db).then((value) => {
-		_siteAppearanceCache = { value, expiresAt: Date.now() + SITE_APPEARANCE_CACHE_TTL_MS };
-		return value;
-	}).finally(() => {
-		_siteAppearancePending = null;
-	});
+	_siteAppearancePending = fetchSiteAppearance(db)
+		.then((value) => {
+			_siteAppearanceCache = {
+				value,
+				expiresAt: Date.now() + SITE_APPEARANCE_CACHE_TTL_MS,
+			};
+			return value;
+		})
+		.finally(() => {
+			_siteAppearancePending = null;
+		});
 
 	return _siteAppearancePending;
 }

@@ -23,7 +23,8 @@ export interface CommentConfig {
 export const siteConfig: SiteConfig = {
 	name: "Gnnis Lab",
 	url: "https://gnnis.com",
-	description: "全栈工程 · 边缘计算 · AI 工作流（聚焦 Cloudflare、Astro 与 AI Agent 落地实践）",
+	description:
+		"全栈工程 · 边缘计算 · AI 工作流（聚焦 Cloudflare、Astro 与 AI Agent 落地实践）",
 	author: "Gary",
 	language: "zh-CN",
 	comments: {

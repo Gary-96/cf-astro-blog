@@ -1,4 +1,8 @@
 import { defineMiddleware } from "astro:middleware";
+import {
+	applyBaseSecurityHeaders,
+	buildCspHeader,
+} from "@/lib/security-headers";
 
 const EDGE_CACHE_TTL_SECONDS = 300;
 
@@ -83,51 +87,11 @@ function applySecurityHeaders(
 ) {
 	const normalizedPath = normalizePathname(pathname);
 
-	response.headers.set("X-Content-Type-Options", "nosniff");
-	response.headers.set(
-		"X-Frame-Options",
-		isAdminPreview ? "SAMEORIGIN" : "DENY",
-	);
-	response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-	response.headers.set(
-		"Permissions-Policy",
-		"camera=(), microphone=(), geolocation=()",
-	);
-	response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+	applyBaseSecurityHeaders(response, isAdminPreview);
 
 	if (!normalizedPath.startsWith("/api/")) {
-		const frameAncestors = isAdminPreview ? "'self'" : "'none'";
-		// 'wasm-unsafe-eval' 须在所有非 API 页面上生效：
-		// Astro ClientRouter (View Transitions) 客户端导航时不会刷新文档级 CSP，
-		// 任何页面都可能成为 Pagefind WASM 的宿主文档。
-		// WebAssembly.instantiate(bytes) 必须有此指令，否则 WASM 编译被 CSP 拦截。
-		// 同时 ClientRouter 在页面切换时会执行内联脚本片段，未放行时会在控制台持续报错。
-		const scriptSources = [
-			"'self'",
-			"'unsafe-inline'",
-			"https://giscus.app",
-			"https://challenges.cloudflare.com",
-			"https://static.cloudflareinsights.com",
-			"https://pagead2.googlesyndication.com",
-			"https://www.googletagmanager.com",
-			"'wasm-unsafe-eval'",
-		];
-		response.headers.set(
-			"Content-Security-Policy",
-			[
-				"default-src 'self'",
-				"base-uri 'self'",
-				`frame-ancestors ${frameAncestors}`,
-				"object-src 'none'",
-				"form-action 'self'",
-				`script-src ${scriptSources.join(" ")}`,
-				"style-src 'self' 'unsafe-inline' https://giscus.app",
-				"img-src 'self' data: https://avatars.githubusercontent.com",
-				"font-src 'self' data: https:",
-				"connect-src 'self' https://giscus.app https://challenges.cloudflare.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagmanager.com https://www.google-analytics.com",
-				"frame-src 'self' https://giscus.app https://challenges.cloudflare.com",
-			].join("; "),
-		);
+		const csp = buildCspHeader("public");
+		response.headers.set("Content-Security-Policy", csp);
 	}
 }
 

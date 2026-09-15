@@ -200,9 +200,7 @@ export const siteAppearanceSettings = sqliteTable("site_appearance_settings", {
 	heroSignalChip2: text("hero_signal_chip_2").notNull().default("Soft Orbit"),
 	heroSignalChip3: text("hero_signal_chip_3").notNull().default("Card Lift"),
 	articleSidebarAvatarPath: text("article_sidebar_avatar_path"),
-	articleSidebarName: text("article_sidebar_name")
-		.notNull()
-		.default("Author"),
+	articleSidebarName: text("article_sidebar_name").notNull().default("Author"),
 	articleSidebarBio: text("article_sidebar_bio")
 		.notNull()
 		.default("在比特海里未雨绸缪，身后养着一只叫晖的狐狸。"),

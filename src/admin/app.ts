@@ -1,4 +1,8 @@
 import { Hono } from "hono";
+import {
+	applyBaseSecurityHeaders,
+	buildCspHeader,
+} from "@/lib/security-headers";
 import type { AdminAppEnv } from "./middleware/auth";
 import { analyticsRoutes } from "./routes/analytics";
 import { appearanceRoutes } from "./routes/appearance";
@@ -17,14 +21,7 @@ import { webmentionRoutes } from "./routes/webmention";
 const app = new Hono<AdminAppEnv>();
 
 function applySecurityHeaders(pathname: string, response: Response) {
-	response.headers.set("X-Content-Type-Options", "nosniff");
-	response.headers.set("X-Frame-Options", "DENY");
-	response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-	response.headers.set(
-		"Permissions-Policy",
-		"camera=(), microphone=(), geolocation=()",
-	);
-	response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+	applyBaseSecurityHeaders(response);
 
 	const contentType = response.headers.get("content-type") ?? "";
 	if (!contentType.includes("text/html")) {
@@ -36,19 +33,7 @@ function applySecurityHeaders(pathname: string, response: Response) {
 	if (pathname.startsWith("/auth")) {
 		response.headers.set(
 			"Content-Security-Policy",
-			[
-				"default-src 'self'",
-				"base-uri 'self'",
-				"frame-ancestors 'none'",
-				"object-src 'none'",
-				"form-action 'self'",
-				"script-src 'self' https://challenges.cloudflare.com https://pagead2.googlesyndication.com https://www.googletagmanager.com",
-				"style-src 'self' 'unsafe-inline'",
-				"img-src 'self' data: https://avatars.githubusercontent.com",
-				"font-src 'self'",
-				"connect-src 'self' https://challenges.cloudflare.com",
-				"frame-src https://challenges.cloudflare.com",
-			].join("; "),
+			buildCspHeader("auth", { allowGiscus: false, allowAds: false }),
 		);
 		return;
 	}
@@ -56,18 +41,7 @@ function applySecurityHeaders(pathname: string, response: Response) {
 	if (pathname.startsWith("/admin")) {
 		response.headers.set(
 			"Content-Security-Policy",
-			[
-				"default-src 'self'",
-				"base-uri 'self'",
-				"frame-ancestors 'none'",
-				"object-src 'none'",
-				"form-action 'self'",
-				"script-src 'self'",
-				"style-src 'self' 'unsafe-inline'",
-				"img-src 'self' data: https://avatars.githubusercontent.com",
-				"font-src 'self'",
-				"connect-src 'self'",
-			].join("; "),
+			buildCspHeader("admin", { allowGiscus: false, allowAds: false }),
 		);
 	}
 }
