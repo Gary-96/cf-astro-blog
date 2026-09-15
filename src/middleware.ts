@@ -109,6 +109,7 @@ function applySecurityHeaders(
 			"https://challenges.cloudflare.com",
 			"https://static.cloudflareinsights.com",
 			"https://pagead2.googlesyndication.com",
+			"https://www.googletagmanager.com",
 			"'wasm-unsafe-eval'",
 		];
 		response.headers.set(
@@ -123,7 +124,7 @@ function applySecurityHeaders(
 				"style-src 'self' 'unsafe-inline' https://giscus.app",
 				"img-src 'self' data: https://avatars.githubusercontent.com",
 				"font-src 'self' data: https:",
-				"connect-src 'self' https://giscus.app https://challenges.cloudflare.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
+				"connect-src 'self' https://giscus.app https://challenges.cloudflare.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagmanager.com https://www.google-analytics.com",
 				"frame-src 'self' https://giscus.app https://challenges.cloudflare.com",
 			].join("; "),
 		);
