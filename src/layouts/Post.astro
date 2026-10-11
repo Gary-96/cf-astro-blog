@@ -1,5 +1,4 @@
 ---
-import CommentsPanel from "@/components/CommentsPanel.astro";
 import { formatDate } from "@/lib/format";
 import type { MarkdownTocItem } from "@/lib/security";
 import Base from "./Base.astro";
@@ -216,9 +215,10 @@ const hasToc = tocEntries.length > 0;
 						<slot />
 					</div>
 				</div>
-				<div class="article-comments-card glass-panel">
+				<!-- 评论区已关闭 -->
+				<!-- <div class="article-comments-card glass-panel">
 					<CommentsPanel />
-				</div>
+				</div> -->
 			</div>
 		</article>
 	<script is:inline src="/article-transparency-toggle.js"></script>
