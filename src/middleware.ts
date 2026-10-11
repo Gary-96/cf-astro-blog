@@ -14,6 +14,45 @@ function normalizePathname(pathname: string): string {
 	return pathname.replace(/\/+$/u, "") || "/";
 }
 
+/**
+ * 如果请求带有尾部斜杠，且当前路径是目录型路由（如 /blog/, /friends/），
+ * 则 301 重定向到无斜杠版本，避免 /path 与 /path/ 产生重复内容。
+ * 文章路径（/blog/slug）不受影响。
+ */
+function maybeStripTrailingSlash(request: Request): Response | null {
+	const url = new URL(request.url);
+	const pathname = url.pathname;
+
+	// 跳过 API、管理后台、文章详情页
+	if (
+		pathname.startsWith("/api/") ||
+		pathname.startsWith("/admin") ||
+		pathname.startsWith("/blog/")
+	) {
+		return null;
+	}
+
+	// 只有带尾部斜杠的目录路径才处理
+	if (!pathname.endsWith("/") || pathname === "/") {
+		return null;
+	}
+
+	// 对已知目录路径做 301 重定向
+	const knownDirectories = ["/blog", "/friends", "/search", "/about", "/contact", "/privacy"];
+	if (!knownDirectories.includes(pathname)) {
+		return null;
+	}
+
+	url.pathname = pathname.slice(0, -1);
+	return new Response(null, {
+		status: 301,
+		headers: {
+			"Location": url.toString(),
+			"Cache-Control": "public, max-age=3600",
+		},
+	});
+}
+
 function resolveEdgeCacheTtl(pathname: string): number {
 	switch (pathname) {
 		case "/":
@@ -96,8 +135,15 @@ function applySecurityHeaders(
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-	const isAdminPreview = context.url.searchParams.get("adminPreview") === "1";
 	const pathname = normalizePathname(context.url.pathname);
+
+	// 优先检查尾部斜杠重定向（在缓存和登录之前）
+	const redirectResponse = maybeStripTrailingSlash(context.request);
+	if (redirectResponse) {
+		return redirectResponse;
+	}
+
+	const isAdminPreview = context.url.searchParams.get("adminPreview") === "1";
 	const shouldUseEdgeCache = canUseEdgeCache({
 		method: context.request.method.toUpperCase(),
 		isAdminPreview,
