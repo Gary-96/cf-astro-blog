@@ -114,17 +114,15 @@ const resolvedDescription =
 			image={image}
 			canonicalUrl={canonicalUrl}
 		/>
-		<script is:inline src="/local-time.js"></script>
-		<script is:inline src="/theme.js"></script>
-		<script is:inline src="/code-block-enhance.js"></script>
-		{!isAdminPreview && <script is:inline src="/analytics.js"></script>}
-		{!isAdminPreview && <script is:inline src="/home-motion.js"></script>}
-		{!isAdminPreview && <script is:inline src="/footer-reveal.js"></script>}
-		<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-GB78XB3BB4"></script>
-		<script is:inline>
-			// @ts-ignore
+		<script src="/local-time.js" defer></script>
+		<script src="/theme.js" defer></script>
+		<script src="/code-block-enhance.js" defer></script>
+		{!isAdminPreview && <script src="/analytics.js" defer></script>}
+		{!isAdminPreview && <script src="/home-motion.js" defer></script>}
+		{!isAdminPreview && <script src="/footer-reveal.js" defer></script>}
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-GB78XB3BB4"></script>
+		<script>
 			window.dataLayer = window.dataLayer || [];
-			// @ts-ignore
 			function gtag(){dataLayer.push(arguments);}
 			gtag('js', new Date());
 			gtag('config', 'G-GB78XB3BB4');
@@ -149,8 +147,11 @@ const resolvedDescription =
 					alt=""
 					class="site-background-image"
 					style={backgroundImageStyle}
-					loading="eager"
+					loading="lazy"
 					decoding="async"
+					// 延迟加载背景图，避免阻塞 LCP
+					onload="this.style.opacity='1'"
+					style="opacity: 0; transition: opacity 0.3s ease;"
 				/>
 			)}
 		</div>
