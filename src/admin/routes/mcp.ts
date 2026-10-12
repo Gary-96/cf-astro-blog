@@ -1530,17 +1530,7 @@ mcpRoutes.all("/", async (c) => {
 
 	const expectedToken = sanitizePlainText(c.env.MCP_BEARER_TOKEN, 500);
 	if (!expectedToken) {
-		await recordMcpAuditLog(c.env, {
-			ip,
-			requestMethod: method,
-			requestPath,
-			sessionId,
-			responseStatus: 404,
-			authState: "token_missing",
-			outcome: "not_found",
-			detail: "服务端未配置 MCP_BEARER_TOKEN",
-			userAgent,
-		});
+		// 未配置 MCP_BEARER_TOKEN：直接快速返回 404，不写 D1 审计，避免扫描器频繁刷库
 		return c.text("Not Found", 404);
 	}
 

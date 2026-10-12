@@ -181,6 +181,11 @@ analytics.get("/", async (c) => {
 	const requestedEventsPage = parsePageValue(c.req.query("eventsPage"), 1);
 	const requestedMcpPage = parsePageValue(c.req.query("mcpPage"), 1);
 	const forceCleanup = c.req.query("cleanup") === "1";
+	const rawMcpFilter = c.req.query("mcpFilter");
+	const mcpFilter: "all" | "success" | "no-probe" =
+		rawMcpFilter === "success" || rawMcpFilter === "no-probe"
+			? rawMcpFilter
+			: "all";
 
 	const stats = {
 		totalSessions: 0,
@@ -189,6 +194,15 @@ analytics.get("/", async (c) => {
 		totalMcpNotFound: 0,
 		topPages: [] as Array<{ pageUrl: string; views: number }>,
 		topReferrers: [] as Array<{ referrer: string; count: number }>,
+		deviceComposition: [] as Array<{
+			deviceType: string;
+			count: number;
+			percent: number;
+		}>,
+		percentDesktop: 0,
+		percentMobile: 0,
+		totalDeviceSessions: 0,
+		mcpFilter: "all" as "all" | "success" | "no-probe",
 		recentEvents: [] as RecentEventRow[],
 		recentMcpLogs: [] as RecentMcpAuditRow[],
 		eventsPage: 1,
@@ -232,24 +246,78 @@ analytics.get("/", async (c) => {
 			1,
 			Math.ceil(stats.totalPageViews / RECENT_EVENTS_PAGE_SIZE),
 		);
+		stats.eventsPage = Math.min(requestedEventsPage, stats.totalEventPages);
+
+		// MCP 审计筛选（全部 / 仅成功调用 / 过滤探测日志）
+		stats.mcpFilter = mcpFilter;
+		const mcpWhere =
+			mcpFilter === "success"
+				? sql`${mcpAuditLogs.responseStatus} = 200`
+				: mcpFilter === "no-probe"
+					? sql`${mcpAuditLogs.authState} = 'authorized'`
+					: sql`1 = 1`;
+		const [mcpFilteredCount] = await db
+			.select({ count: sql<number>`count(*)` })
+			.from(mcpAuditLogs)
+			.where(mcpWhere);
 		stats.totalMcpPages = Math.max(
 			1,
-			Math.ceil(stats.totalMcpRequests / RECENT_MCP_PAGE_SIZE),
+			Math.ceil((mcpFilteredCount?.count ?? 0) / RECENT_MCP_PAGE_SIZE),
 		);
-		stats.eventsPage = Math.min(requestedEventsPage, stats.totalEventPages);
 		stats.mcpPage = Math.min(requestedMcpPage, stats.totalMcpPages);
+
 		const eventsOffset = (stats.eventsPage - 1) * RECENT_EVENTS_PAGE_SIZE;
 		const mcpOffset = (stats.mcpPage - 1) * RECENT_MCP_PAGE_SIZE;
 
+		// Top 10 页面榜单（排除后台 / API / MCP 自身路由）
 		stats.topPages = (await db
 			.select({
 				pageUrl: analyticsEvents.pageUrl,
 				views: sql<number>`count(*)`,
 			})
 			.from(analyticsEvents)
+			.where(
+				sql`NOT (${analyticsEvents.pageUrl} LIKE '/admin%' OR ${analyticsEvents.pageUrl} LIKE '/api%' OR ${analyticsEvents.pageUrl} LIKE '/mcp%')`,
+			)
 			.groupBy(analyticsEvents.pageUrl)
 			.orderBy(desc(sql`count(*)`))
 			.limit(TOP_ITEMS_LIMIT)) as Array<{ pageUrl: string; views: number }>;
+
+		// 访客构成：桌面端 / 移动端设备占比（按会话统计）
+		const deviceRows = (await db
+			.select({
+				deviceType: analyticsSessions.deviceType,
+				count: sql<number>`count(*)`,
+			})
+			.from(analyticsSessions)
+			.groupBy(analyticsSessions.deviceType)) as Array<{
+			deviceType: string | null;
+			count: number;
+		}>;
+		stats.totalDeviceSessions = deviceRows.reduce(
+			(sum, row) => sum + Number(row.count || 0),
+			0,
+		);
+		stats.deviceComposition = deviceRows
+			.map((row) => {
+				const type = row.deviceType || "unknown";
+				const count = Number(row.count || 0);
+				return {
+					deviceType: type,
+					count,
+					percent:
+						stats.totalDeviceSessions > 0
+							? (count / stats.totalDeviceSessions) * 100
+							: 0,
+				};
+			})
+			.sort((a, b) => b.count - a.count);
+		stats.percentDesktop =
+			stats.deviceComposition.find((d) => d.deviceType === "desktop")
+				?.percent ?? 0;
+		stats.percentMobile =
+			stats.deviceComposition.find((d) => d.deviceType === "mobile")?.percent ??
+			0;
 
 		stats.topReferrers = (
 			await db
@@ -292,6 +360,7 @@ analytics.get("/", async (c) => {
 				timestamp: mcpAuditLogs.timestamp,
 			})
 			.from(mcpAuditLogs)
+			.where(mcpWhere)
 			.orderBy(desc(mcpAuditLogs.timestamp))
 			.limit(RECENT_MCP_PAGE_SIZE)
 			.offset(mcpOffset);
@@ -348,6 +417,24 @@ analytics.get("/", async (c) => {
 				: "<p class='empty-state'>当前还没有页面访问数据。</p>"
 		}
 
+			<h2>访客构成（设备）</h2>
+			<p class="form-help">桌面端 <strong>${stats.percentDesktop.toFixed(1)}%</strong> · 移动端 <strong>${stats.percentMobile.toFixed(1)}%</strong>${stats.totalDeviceSessions > 0 ? `（统计最近 ${stats.totalDeviceSessions} 个会话）` : ""}</p>
+			${
+				stats.deviceComposition.length > 0
+					? `<div class="table-card"><table class="data-table">
+						<thead><tr><th>设备类型</th><th>会话数</th><th style="width:42%">占比</th></tr></thead>
+						<tbody>
+							${stats.deviceComposition
+								.map((d) => {
+									const bar = Math.min(100, Math.max(0, d.percent)).toFixed(1);
+									return `<tr><td>${escapeHtml(deviceTypeLabel(d.deviceType))}</td><td>${d.count}</td><td class="table-cell-break"><div style="display:flex;align-items:center;gap:.6rem;min-width:0"><span style="flex:1;height:8px;border-radius:999px;background:var(--bg-tertiary, rgba(15,23,42,.06));overflow:hidden"><span style="display:block;height:100%;width:${bar}%;background:var(--accent)"></span></span><span style="min-width:4.4rem;text-align:right;color:var(--text-muted)">${bar}%</span></div></td></tr>`;
+								})
+								.join("")}
+						</tbody>
+					</table></div>`
+					: "<p class='empty-state'>当前还没有设备统计。</p>"
+			}
+
 			<h2>来源站点</h2>
 			${
 				stats.topReferrers.length > 0
@@ -362,6 +449,7 @@ analytics.get("/", async (c) => {
 
 			<h2>MCP 审计专栏</h2>
 			<p class="form-help">会记录 MCP 全量请求，包括鉴权失败、扫描触发的 404、限流和工具调用详情。</p>
+			${mcpFilterTabs(stats.mcpFilter)}
 			${
 				stats.recentMcpLogs.length > 0
 					? `<div class="table-card"><table class="data-table">
@@ -545,5 +633,38 @@ analytics.get("/export", async (c) => {
 		},
 	});
 });
+
+function deviceTypeLabel(deviceType: string): string {
+	switch (deviceType) {
+		case "desktop":
+			return "桌面端";
+		case "mobile":
+			return "移动端";
+		case "tablet":
+			return "平板端";
+		case "unknown":
+			return "未知设备";
+		default:
+			return deviceType || "未知设备";
+	}
+}
+
+function mcpFilterTabs(
+	active: "all" | "success" | "no-probe",
+): string {
+	const base = "/api/admin/analytics";
+	const tabs = [
+		{ key: "all", label: "全部", href: base },
+		{ key: "success", label: "仅成功调用", href: `${base}?mcpFilter=success` },
+		{ key: "no-probe", label: "过滤探测日志", href: `${base}?mcpFilter=no-probe` },
+	] as const;
+
+	return `<div class="filter-tabs" role="tablist" aria-label="MCP 审计筛选">${tabs
+		.map(
+			(tab) =>
+				`<a class="filter-tab${tab.key === active ? " is-active" : ""}" href="${tab.href}">${escapeHtml(tab.label)}</a>`,
+		)
+		.join("")}</div>`;
+}
 
 export { analytics as analyticsRoutes };

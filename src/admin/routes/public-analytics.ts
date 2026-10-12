@@ -164,6 +164,71 @@ function parseClientIp(c: Context<AdminAppEnv>): string | null {
 	return sanitizePlainText(first, 64) || null;
 }
 
+// 常见爬虫 / 扫描器 / AI 数据抓取器的 UA 特征：命中即丢弃，避免污染访客统计（不写 D1）
+const KNOWN_BOT_MARKERS = [
+	"ahrefs",
+	"semrush",
+	"sistrix",
+	"majestic",
+	"dataseetl",
+	"dataforseo",
+	"baidu",
+	"sogou",
+	"360spider",
+	"petalbot",
+	"yandex",
+	"duckduckbot",
+	"googlebot",
+	"gbot",
+	"mediapartners",
+	"adsbot",
+	"bingbot",
+	"bingpreview",
+	"msnbot",
+	"applebot",
+	"amazonbot",
+	"openai",
+	"gptbot",
+	"oai-artist",
+	"claude",
+	"anthropic",
+	"ccbot",
+	"cohere",
+	"bytebot",
+	"diffbot",
+	"perplexity",
+	"hubspot",
+	"facebookexternalhit",
+	"twitterbot",
+	"linkedinbot",
+	"whatsapp",
+	"telegram",
+	"slackbot",
+	"discord",
+	"pinterest",
+	"quora",
+	"reddit",
+	"exabot",
+	"linkdexbot",
+	"uptimerobot",
+	"pingdom",
+	"statuspage",
+	"checkly",
+	"newrelic",
+	"hostingslasher",
+	"nuclei",
+	"wpscan",
+];
+
+function isKnownBotUserAgent(userAgent: string): boolean {
+	const ua = userAgent.toLowerCase();
+	if (!ua) {
+		return false;
+	}
+
+	return KNOWN_BOT_MARKERS.some((marker) => ua.includes(marker));
+}
+
 function isSameOriginRequest(c: Context<AdminAppEnv>) {
 	const origin = c.req.header("origin");
 	if (!origin) {
@@ -232,6 +297,12 @@ publicAnalyticsRoutes.post("/track", async (c) => {
 		return c.json({ error: "非法来源请求" }, 403);
 	}
 
+	const userAgent = sanitizePlainText(c.req.header("user-agent"), 255);
+	// 常见爬虫 / 扫描器：直接丢弃，不写 D1，避免污染访客统计
+	if (isKnownBotUserAgent(userAgent)) {
+		return c.body(null, 204);
+	}
+
 	const body = await c.req.text();
 	const requestUrl = new URL(c.req.url);
 	const payload = parseTrackPayload(body, requestUrl);
@@ -239,7 +310,6 @@ publicAnalyticsRoutes.post("/track", async (c) => {
 		return c.json({ error: "无效的统计上报数据" }, 400);
 	}
 
-	const userAgent = sanitizePlainText(c.req.header("user-agent"), 255);
 	const cf = (
 		c.req.raw as Request & {
 			cf?: { country?: string; region?: string; city?: string };

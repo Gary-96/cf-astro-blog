@@ -1465,6 +1465,34 @@ editorForm?.addEventListener("submit", () => {
 });
 applyAdminLocalTimes();
 initEditorDraft();
+
+// 后台登录态标记：让前台 analytics.js 在管理员浏览时跳过 page_view 上报（去噪）
+const ADMIN_ACTIVE_MARKER_KEY = "cf-astro-blog:admin-active";
+
+function setAdminActiveMarker() {
+	try {
+		window.localStorage.setItem(ADMIN_ACTIVE_MARKER_KEY, "1");
+	} catch {
+		// 本地存储不可用时忽略，不影响后台功能
+	}
+}
+
+function clearAdminActiveMarker() {
+	try {
+		window.localStorage.removeItem(ADMIN_ACTIVE_MARKER_KEY);
+	} catch {
+		// 本地存储不可用时忽略
+	}
+}
+
+// admin.js 仅在已登录的后台页面加载，加载即标记“管理员活跃”
+setAdminActiveMarker();
+
+const adminLogoutForm = document.querySelector('form[action="/api/auth/logout"]');
+if (adminLogoutForm instanceof HTMLFormElement) {
+	adminLogoutForm.addEventListener("submit", clearAdminActiveMarker);
+}
+
 aiSeoGenerateButton?.addEventListener("click", () => {
 	void triggerAiSeoGeneration();
 });

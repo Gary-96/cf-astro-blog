@@ -22,6 +22,18 @@
 		return;
 	}
 
+	// 管理员登录态标记（由后台 admin.js 写入）：管理员浏览前台时不上报，避免污染访客统计
+	const ADMIN_ACTIVE_MARKER_KEY = "cf-astro-blog:admin-active";
+	let adminActive = false;
+	try {
+		adminActive = window.localStorage.getItem(ADMIN_ACTIVE_MARKER_KEY) === "1";
+	} catch {
+		adminActive = false;
+	}
+	if (adminActive) {
+		return;
+	}
+
 	function createSessionId() {
 		if (window.crypto?.randomUUID) {
 			return window.crypto.randomUUID().replaceAll("-", "");
