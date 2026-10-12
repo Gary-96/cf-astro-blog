@@ -121,9 +121,9 @@ const resolvedDescription =
 		{!isAdminPreview && <script src="/home-motion.js" defer></script>}
 		{!isAdminPreview && <script src="/footer-reveal.js" defer></script>}
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-GB78XB3BB4"></script>
-		<script>
+		<script is:inline>
 			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
+			function gtag() { window.dataLayer.push(arguments); }
 			gtag('js', new Date());
 			gtag('config', 'G-GB78XB3BB4');
 		</script>
@@ -146,12 +146,10 @@ const resolvedDescription =
 					src={backgroundImageUrl}
 					alt=""
 					class="site-background-image"
-					style={backgroundImageStyle}
+					style={`${backgroundImageStyle}opacity: 0; transition: opacity 0.3s ease;`}
 					loading="lazy"
 					decoding="async"
-					// 延迟加载背景图，避免阻塞 LCP
 					onload="this.style.opacity='1'"
-					style="opacity: 0; transition: opacity 0.3s ease;"
 				/>
 			)}
 		</div>

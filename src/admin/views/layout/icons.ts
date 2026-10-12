@@ -70,3 +70,8 @@ export function buildNavItems(): NavItem[] {
 		};
 	});
 }
+
+/** 将图标 path 渲染为内联 SVG（供导航等组件复用） */
+export function renderIcon(path: string): string {
+	return `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${path}"></path></svg>`;
+}

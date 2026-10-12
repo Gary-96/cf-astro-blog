@@ -29,8 +29,8 @@ export const siteConfig: SiteConfig = {
 	language: "zh-CN",
 	comments: {
 		provider: "giscus",
-		repo: "Gary-96/cf-astro-blog",
-		repoId: "R_kgDOUX_4lw",
+		repo: "",
+		repoId: "",
 		// 请在 GitHub Discussions 分类页获取 categoryId，格式类似 DIC_kwDOU...
 		category: "",
 		categoryId: "",
