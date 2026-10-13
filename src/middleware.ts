@@ -5,6 +5,7 @@ import {
 } from "@/lib/security-headers";
 
 const EDGE_CACHE_TTL_SECONDS = 300;
+const STATIC_ASSET_CACHE_DAYS = 365;
 
 function normalizePathname(pathname: string): string {
 	if (!pathname || pathname === "/") {
@@ -141,6 +142,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	const redirectResponse = maybeStripTrailingSlash(context.request);
 	if (redirectResponse) {
 		return redirectResponse;
+	}
+
+	// 静态资源长期缓存（CSS/JS/图片/字体等）
+	const staticAssetPattern = /\.(css|js|png|jpg|jpeg|webp|svg|woff2?|gif|ico)(\?[a-zA-Z0-9]+)?$/;
+	if (staticAssetPattern.test(pathname)) {
+		const staticCacheControl = `public, max-age=${STATIC_ASSET_CACHE_DAYS * 86400}, immutable`;
+		return new Response(await context.request.text(), {
+			status: 200,
+			headers: {
+				"Content-Type": context.request.headers.get("Content-Type") || "application/octet-stream",
+				"Cache-Control": staticCacheControl,
+			},
+		});
 	}
 
 	const isAdminPreview = context.url.searchParams.get("adminPreview") === "1";
