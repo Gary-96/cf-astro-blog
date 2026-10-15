@@ -147,8 +147,8 @@ const resolvedDescription =
 					alt=""
 					class="site-background-image"
 					style={`${backgroundImageStyle}opacity: 0; transition: opacity 0.3s ease;`}
-					loading="lazy"
-					decoding="async"
+					loading="eager"
+					fetchpriority="high"
 					onload="this.style.opacity='1'"
 				/>
 			)}
