@@ -19,6 +19,10 @@ const DEFAULT_CONNECT_SOURCES = [
 	"https://challenges.cloudflare.com",
 	"https://static.cloudflareinsights.com",
 	"https://cloudflareinsights.com",
+	// GA4 与 Google 服务
+	"https://analytics.google.com",
+	"https://stats.g.doubleclick.net",
+	"https://www.google.com",
 ];
 
 const DEFAULT_SCRIPT_SOURCES = [
@@ -27,6 +31,8 @@ const DEFAULT_SCRIPT_SOURCES = [
 	"https://challenges.cloudflare.com",
 	"https://static.cloudflareinsights.com",
 	"'wasm-unsafe-eval'",
+	// AdSense 合规弹窗组件
+	"https://fundingchoicesmessages.google.com",
 ];
 
 const DEFAULT_FRAME_SOURCES = ["'self'", "https://challenges.cloudflare.com"];
@@ -78,23 +84,38 @@ export function buildCspHeader(
 		].filter((v): v is string => v !== null),
 	);
 
-	const base: string[] = [
-		"default-src 'self'",
-		"base-uri 'self'",
-		"frame-ancestors 'none'",
-		"object-src 'none'",
-		"form-action 'self'",
-		`script-src ${scriptSrc.join(" ")}`,
-		"style-src 'self' 'unsafe-inline'",
-		"img-src 'self' data: https://avatars.githubusercontent.com",
-		"font-src 'self' data: https:",
-		`connect-src ${connectSrc.join(" ")}`,
-		`frame-src ${frameSrc.join(" ")}`,
-	];
+	let base: string[];
 
 	if (mode === "public") {
-		// 前台页面额外放行 giscus 样式与 script
-		base.push("style-src 'self' 'unsafe-inline' https://giscus.app");
+		// 前台页面：默认 style-src 已包含 giscus
+		base = [
+			"default-src 'self'",
+			"base-uri 'self'",
+			"frame-ancestors 'none'",
+			"object-src 'none'",
+			"form-action 'self'",
+			`script-src ${scriptSrc.join(" ")}`,
+			"style-src 'self' 'unsafe-inline' https://giscus.app",
+			"img-src 'self' data: https://avatars.githubusercontent.com",
+			"font-src 'self' data: https:",
+			`connect-src ${connectSrc.join(" ")}`,
+			`frame-src ${frameSrc.join(" ")}`,
+		];
+	} else {
+		// 后台/认证页：不包含 giscus
+		base = [
+			"default-src 'self'",
+			"base-uri 'self'",
+			"frame-ancestors 'none'",
+			"object-src 'none'",
+			"form-action 'self'",
+			`script-src ${scriptSrc.join(" ")}`,
+			"style-src 'self' 'unsafe-inline'",
+			"img-src 'self' data: https://avatars.githubusercontent.com",
+			"font-src 'self' data: https:",
+			`connect-src ${connectSrc.join(" ")}`,
+			`frame-src ${frameSrc.join(" ")}`,
+		];
 	}
 
 	return base.join("; ");
