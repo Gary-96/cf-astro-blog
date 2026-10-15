@@ -23,6 +23,13 @@ const DEFAULT_CONNECT_SOURCES = [
 	"https://analytics.google.com",
 	"https://stats.g.doubleclick.net",
 	"https://www.google.com",
+	"https://www.google-analytics.com",
+	"https://region1.google-analytics.com",
+	// AdSense 与广告质量校验
+	"https://pagead2.googlesyndication.com",
+	"https://googleads.g.doubleclick.net",
+	"https://ep1.adtrafficquality.google.com",
+	"https://fundingchoicesmessages.google.com",
 ];
 
 const DEFAULT_SCRIPT_SOURCES = [
