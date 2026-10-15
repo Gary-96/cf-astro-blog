@@ -118,9 +118,7 @@ const resolvedDescription =
 		<link rel="preconnect" href="https://www.googletagmanager.com" />
 		<link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin />
 		<link rel="dns-prefetch" href="https://www.google-analytics.com" />
-		{/* 关键 CSS 预加载 */}
-		<link rel="preload" as="style" href="/_astro/Base.m0o7vVpy.css" />
-		<link rel="stylesheet" href="/_astro/Base.m0o7vVpy.css" />
+		{/* CSS 已由 Astro 内联，移除外部链接 */}
 		<script src="/local-time.js" defer></script>
 		<script src="/theme.js" defer></script>
 		<script src="/code-block-enhance.js" defer></script>
@@ -147,11 +145,8 @@ const resolvedDescription =
 		</script>
 		{/* AdSense — async 加载，不阻塞首屏渲染 */}
 		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5842742467968137" crossorigin="anonymous"></script>
-		{/* 非关键 CSS 延迟加载 */}
-		<link rel="preload" as="style" href="/_astro/post-card.DMt3Cpw1.css" onload="this.rel='stylesheet'" />
-		<noscript><link rel="stylesheet" href="/_astro/post-card.DMt3Cpw1.css" /></noscript>
-		<link rel="preload" as="style" href="/_astro/index@_@astro.Z45Ns70A.css" onload="this.rel='stylesheet'" />
-		<noscript><link rel="stylesheet" href="/_astro/index@_@astro.Z45Ns70A.css" /></noscript>
+		{/* 非关键 CSS 延迟加载 — 仅保留 post-card 和 search 样式 */}
+		<link rel="modulepreload" href="/_astro/ClientRouter.astro_astro_type_script_index_0_lang.BC564J2Q.js" />
 	</head>
 		<body
 			class:list={[
