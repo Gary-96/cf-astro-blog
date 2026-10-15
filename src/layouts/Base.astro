@@ -120,17 +120,21 @@ const resolvedDescription =
 		{!isAdminPreview && <script src="/analytics.js" defer></script>}
 		{!isAdminPreview && <script src="/home-motion.js" defer></script>}
 		{!isAdminPreview && <script src="/footer-reveal.js" defer></script>}
+		{/* GTM 容器脚本 — async 不阻塞渲染 */}
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-GB78XB3BB4"></script>
-		<script is:inline>
+		{/* GA4 初始化 — defer 确保 DOM 解析完成后再执行 */}
+		<script defer>
 			window.dataLayer = window.dataLayer || [];
 			function gtag() { window.dataLayer.push(arguments); }
 			gtag('js', new Date());
 			gtag('config', 'G-GB78XB3BB4');
 		</script>
+		{/* AdSense — async + 延迟加载，不阻塞首屏 */}
 		<script
 			async
 			src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5842742467968137"
 			crossorigin="anonymous"
+			defer
 		></script>
 	</head>
 		<body

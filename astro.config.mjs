@@ -14,6 +14,10 @@ export default defineConfig({
 		},
 	}),
 	site: "https://gnnis.com",
+	build: {
+		// 内联首屏关键 CSS，减少一次网络往返
+		inlineStylesheets: "auto",
+	},
 	vite: {
 		resolve: {
 			alias: {
