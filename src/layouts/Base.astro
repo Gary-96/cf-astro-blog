@@ -114,6 +114,13 @@ const resolvedDescription =
 			image={image}
 			canonicalUrl={canonicalUrl}
 		/>
+		{/* 预连接外部域名，加速第三方资源加载 */}
+		<link rel="preconnect" href="https://www.googletagmanager.com" />
+		<link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin />
+		<link rel="dns-prefetch" href="https://www.google-analytics.com" />
+		{/* 关键 CSS 预加载 */}
+		<link rel="preload" as="style" href="/_astro/Base.m0o7vVpy.css" />
+		<link rel="stylesheet" href="/_astro/Base.m0o7vVpy.css" />
 		<script src="/local-time.js" defer></script>
 		<script src="/theme.js" defer></script>
 		<script src="/code-block-enhance.js" defer></script>
@@ -122,20 +129,29 @@ const resolvedDescription =
 		{!isAdminPreview && <script src="/footer-reveal.js" defer></script>}
 		{/* GTM 容器脚本 — async 不阻塞渲染 */}
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-GB78XB3BB4"></script>
-		{/* GA4 初始化 — defer 确保 DOM 解析完成后再执行 */}
-		<script defer>
-			window.dataLayer = window.dataLayer || [];
-			function gtag() { window.dataLayer.push(arguments); }
-			gtag('js', new Date());
-			gtag('config', 'G-GB78XB3BB4');
+		{/* GA4 初始化 — 使用 requestIdleCallback 确保不阻塞主线程 */}
+		<script>
+			if ('requestIdleCallback' in window) {
+				requestIdleCallback(function() {
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+					gtag('config', 'G-GB78XB3BB4');
+				}, { timeout: 2000 });
+			} else {
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){dataLayer.push(arguments);}
+				gtag('js', new Date());
+				gtag('config', 'G-GB78XB3BB4');
+			}
 		</script>
-		{/* AdSense — async + 延迟加载，不阻塞首屏 */}
-		<script
-			async
-			src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5842742467968137"
-			crossorigin="anonymous"
-			defer
-		></script>
+		{/* AdSense — async 加载，不阻塞首屏渲染 */}
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5842742467968137" crossorigin="anonymous"></script>
+		{/* 非关键 CSS 延迟加载 */}
+		<link rel="preload" as="style" href="/_astro/post-card.DMt3Cpw1.css" onload="this.rel='stylesheet'" />
+		<noscript><link rel="stylesheet" href="/_astro/post-card.DMt3Cpw1.css" /></noscript>
+		<link rel="preload" as="style" href="/_astro/index@_@astro.Z45Ns70A.css" onload="this.rel='stylesheet'" />
+		<noscript><link rel="stylesheet" href="/_astro/index@_@astro.Z45Ns70A.css" /></noscript>
 	</head>
 		<body
 			class:list={[
