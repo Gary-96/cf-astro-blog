@@ -4,8 +4,7 @@ import {
 	buildCspHeader,
 } from "@/lib/security-headers";
 
-const EDGE_CACHE_TTL_SECONDS = 300;
-const STATIC_ASSET_CACHE_DAYS = 365;
+const EDGE_CACHE_TTL_SECONDS = 600;
 
 function normalizePathname(pathname: string): string {
 	if (!pathname || pathname === "/") {
@@ -144,17 +143,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return redirectResponse;
 	}
 
-	// 静态资源长期缓存（CSS/JS/图片/字体等）
-	const staticAssetPattern = /\.(css|js|png|jpg|jpeg|webp|svg|woff2?|gif|ico)(\?[a-zA-Z0-9]+)?$/;
-	if (staticAssetPattern.test(pathname)) {
-		const staticCacheControl = `public, max-age=${STATIC_ASSET_CACHE_DAYS * 86400}, immutable`;
-		return new Response(await context.request.text(), {
-			status: 200,
-			headers: {
-				"Content-Type": context.request.headers.get("Content-Type") || "application/octet-stream",
-				"Cache-Control": staticCacheControl,
-			},
-		});
+	// ─── 静态资源快速短路（直接放行，不读取请求体）─────────────────────────────
+	const extMatch = pathname.match(/\.(css|js|png|jpg|jpeg|webp|svg|woff2?|gif|ico)(\?[a-zA-Z0-9=&+-]+)?$/i);
+	const isStaticPrefix = pathname.startsWith("/_astro/") ||
+		pathname.startsWith("/favicon") ||
+		pathname.startsWith("/robots") ||
+		pathname.startsWith("/ads") ||
+		pathname.startsWith("/sitemap");
+
+	if (extMatch || isStaticPrefix) {
+		return next();
 	}
 
 	const isAdminPreview = context.url.searchParams.get("adminPreview") === "1";
@@ -198,11 +196,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 			// max-age 与 s-maxage 保持一致：
 			// 浏览器缓存使 Astro prefetch 预取的内容可以被 ClientRouter 的 fetch() 直接命中，
 			// 避免每次导航都需要服务器往返，彻底消除点击延迟。
-			const cacheControl = `public, s-maxage=${edgeCacheTtl}, max-age=${edgeCacheTtl}, stale-while-revalidate=86400`;
-			response.headers.set("Cache-Control", cacheControl);
+			response.headers.set("Cache-Control", "public, max-age=600, s-maxage=86400, stale-while-revalidate=3600");
 			response.headers.set("X-Edge-Cache", "MISS");
 
 			const responseForCache = response.clone();
+			const cacheControl = "public, max-age=600, s-maxage=86400, stale-while-revalidate=3600";
 			responseForCache.headers.set("Cache-Control", cacheControl);
 			try {
 				await edgeCache.put(cacheKey, responseForCache);
