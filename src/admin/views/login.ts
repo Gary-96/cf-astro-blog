@@ -494,7 +494,7 @@ export function loginPage(options: LoginPageOptions = {}): string {
 			</div>
 		</section>
 
-		<p class="entry-footer">${siteName} &mdash; 后台入口</p>
+		<p class="entry-footer">${siteName} · 后台入口</p>
 	</main>
 </body>
 </html>`;
