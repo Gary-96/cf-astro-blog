@@ -2150,69 +2150,84 @@ const handleEditorImageUpload = async (file) => {
 
 contentTextarea?.addEventListener("input", scheduleMarkdownPreview);
 
-// ─── Markdown 编辑器双向同步滚动（Scroll Percentage Sync）───────────────────
-// 原理：计算滚动百分比 → 应用到目标容器 → 互斥锁防止死循环
-// 参考：https://juejin.cn/post/... Typora 式同步滚动方案
+// ─── 2026-10-28: Markdown 编辑器双向同步滚动（优化修复版）───────────────────
+// 修复：互斥锁死锁 bug、加入 requestAnimationFrame 与边缘像素吸附
 
 const markdownPreviewBody = document.querySelector("[data-markdown-preview='true']");
 
-// 互斥锁：'editor' | 'preview' | null
-let scrollingSource = null;
-let scrollUnlockTimer = null;
+let isSyncing = false;
+let unlockRafId = 0;
 
 /**
- * 同步滚动函数
- * @param {HTMLElement} source - 主动滚动的容器
- * @param {HTMLElement} target - 被动同步的容器
+ * 按百分比同步滚动
+ * @param {HTMLElement} source 主动滚动的容器
+ * @param {HTMLElement} target 被动跟随的容器
  */
-function syncScrollPercentage(source, target) {
-	if (!source || !target || scrollingSource) return;
+function syncScroll(source, target) {
+	if (!source || !target) return;
 
-	// 计算源容器的滚动百分比
-	const sourceMaxScroll = source.scrollHeight - source.clientHeight;
-	if (sourceMaxScroll <= 0) return;
+	const sourceMax = source.scrollHeight - source.clientHeight;
+	const targetMax = target.scrollHeight - target.clientHeight;
 
-	const scrollPercentage = source.scrollTop / sourceMaxScroll;
+	if (sourceMax <= 0 || targetMax <= 0) return;
 
-	// 应用到目标容器
-	const targetMaxScroll = target.scrollHeight - target.clientHeight;
-	target.scrollTop = scrollPercentage * targetMaxScroll;
+	// 顶部与底部微像素阈值吸附（避免因浮点数误差导致首尾对不齐）
+	if (source.scrollTop <= 5) {
+		target.scrollTop = 0;
+		return;
+	}
+	if (source.scrollTop >= sourceMax - 5) {
+		target.scrollTop = targetMax;
+		return;
+	}
+
+	const ratio = source.scrollTop / sourceMax;
+	target.scrollTop = Math.round(ratio * targetMax);
 }
 
-/**
- * 处理编辑器滚动 → 驱动预览区
- */
+// 1. 左侧编辑器滚动 -> 驱动右侧预览区
 function handleEditorScroll() {
-	if (scrollingSource === 'preview') return; // 忽略反向触发
+	if (isSyncing) return;
+	isSyncing = true;
 
-	scrollingSource = 'editor';
-	syncScrollPercentage(contentTextarea, markdownPreviewBody);
+	window.requestAnimationFrame(() => {
+		syncScroll(contentTextarea, markdownPreviewBody);
 
-	// 延迟解锁，防止快速滚动时的死循环
-	clearTimeout(scrollUnlockTimer);
-	scrollUnlockTimer = setTimeout(() => {
-		scrollingSource = null;
-	}, 50);
+		window.cancelAnimationFrame(unlockRafId);
+		unlockRafId = window.requestAnimationFrame(() => {
+			isSyncing = false;
+		});
+	});
 }
 
-/**
- * 处理预览区滚动 → 反向驱动编辑器
- */
+// 2. 右侧预览区滚动 -> 反向驱动左侧编辑器
 function handlePreviewScroll() {
-	if (scrollingSource === 'editor') return; // 忽略反向触发
+	if (isSyncing) return;
+	isSyncing = true;
 
-	scrollingSource = 'preview';
-	syncScrollPercentage(markdownPreviewBody, contentTextarea);
+	window.requestAnimationFrame(() => {
+		syncScroll(markdownPreviewBody, contentTextarea);
 
-	// 延迟解锁
-	clearTimeout(scrollUnlockTimer);
-	scrollUnlockTimer = setTimeout(() => {
-		scrollingSource = null;
-	}, 50);
+		window.cancelAnimationFrame(unlockRafId);
+		unlockRafId = window.requestAnimationFrame(() => {
+			isSyncing = false;
+		});
+	});
 }
 
-contentTextarea?.addEventListener("scroll", handleEditorScroll);
-markdownPreviewBody?.addEventListener("scroll", handlePreviewScroll);
+// 绑定滚动监听（passive: true 提升流畅度）
+contentTextarea?.addEventListener("scroll", handleEditorScroll, { passive: true });
+markdownPreviewBody?.addEventListener("scroll", handlePreviewScroll, { passive: true });
+
+// 3. 自适应高度动态校准（右侧 Markdown 解析出新 HTML 或图片加载完时，自动重新对齐）
+if (window.ResizeObserver && markdownPreviewBody && contentTextarea) {
+	const resizeObserver = new ResizeObserver(() => {
+		if (!isSyncing && contentTextarea.scrollHeight > contentTextarea.clientHeight) {
+			syncScroll(contentTextarea, markdownPreviewBody);
+		}
+	});
+	resizeObserver.observe(markdownPreviewBody);
+}
 
 // 调试日志：检查事件绑定
 console.log('[ScrollSync] Event listeners attached:');
