@@ -531,29 +531,32 @@ export function postEditorPage(data: EditorData): string {
 					<div class="form-group">
 						<label>标签</label>
 						<input type="hidden" id="tagIds" name="tagIds" value="${escapeAttribute(selectedTagIds.join(","))}" />
-						<div class="tag-list">
-							${
-								tags.length > 0
+						<div class="tag-manager" data-tag-manager="true">
+							<div class="tag-search-wrap">
+								<input type="text" id="tagSearch" class="form-input form-input-sm" placeholder="搜索标签..." data-tag-search="true" autocomplete="off" />
+								<div class="tag-dropdown" data-tag-dropdown="true" hidden>
+									<div class="tag-dropdown-selected" data-tag-selected="true"></div>
+									<div class="tag-dropdown-options" data-tag-options="true"></div>
+								</div>
+							</div>
+							<div class="tag-selected-list" data-tag-selected-list="true">
+								${selectedTagIds.length > 0
 									? tags
-											.map(
-												(tag) => `
-								<label class="tag-chip">
-									<input type="checkbox" value="${tag.id}" ${selectedTagIds.includes(tag.id) ? "checked" : ""} data-tag-checkbox="true" />
-									${escapeHtml(tag.name)}
-								</label>`,
-											)
-											.join("")
-									: `<span class="form-help">暂无标签</span>`
-							}
+										.filter((t) => selectedTagIds.includes(t.id))
+										.map((t) => `
+											<span class="tag-selected-chip" data-tag-chip="${t.id}">
+												${escapeHtml(t.name)}
+												<button type="button" class="tag-chip-remove" data-tag-remove="${t.id}" aria-label="移除 ${escapeHtml(t.name)}">×</button>
+											</span>
+										`).join("")
+									: '<span class="form-help">未选择标签</span>'
+								}
+							</div>
+							<div class="tag-new-wrap">
+								<input type="text" id="newTagNames" name="newTagNames" class="form-input form-input-sm" maxlength="400" placeholder="新标签，多个用逗号分隔" />
+							</div>
 						</div>
-						<input
-							type="text"
-							id="newTagNames"
-							name="newTagNames"
-							class="form-input"
-							maxlength="400"
-							placeholder="新标签，多个用逗号分隔"
-						/>
+						<p class="form-help">选择已有标签或输入新标签名称。</p>
 					</div>
 
 					<div class="form-actions">

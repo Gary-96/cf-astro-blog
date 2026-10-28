@@ -1529,26 +1529,119 @@ h2 {
 .tag-list {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.55rem;
+	gap: 0.5rem;
 }
 
-.tag-chip {
+/* ─── Tag Manager (新版标签选择器) ───────────────────────────────────────── */
+.tag-manager {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.tag-search-wrap {
+	position: relative;
+}
+
+.tag-search-wrap .form-input-sm {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+}
+
+.tag-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	margin-top: 0.25rem;
+	background: var(--surface-elevated);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-strong);
+	z-index: 100;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+.tag-dropdown-options {
+	padding: 0.5rem;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.tag-dropdown-option {
+	padding: 0.5rem 0.75rem;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	font-size: 0.875rem;
+	transition: background-color var(--transition-fast);
+}
+
+.tag-dropdown-option:hover {
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.tag-selected-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	min-height: 2rem;
+}
+
+.tag-selected-chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.42rem;
-	padding: 0.48rem 0.75rem;
+	gap: 0.35rem;
+	padding: 0.35rem 0.6rem;
 	border-radius: var(--radius-pill);
-	background: var(--bg-tertiary);
-	border: 1px solid var(--border);
-	font-size: 0.84rem;
-	cursor: pointer;
-	transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+	background: var(--accent-soft);
+	color: var(--accent);
+	font-size: 0.8rem;
+	font-weight: 600;
+	border: 1px solid rgba(var(--accent-rgb), 0.2);
+	animation: tag-chip-in 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tag-chip:hover {
-	transform: translate3d(0, -1px, 0);
-	background: var(--surface-elevated);
-	border-color: var(--border-strong);
+.tag-chip-remove {
+	width: 1rem;
+	height: 1rem;
+	display: grid;
+	place-items: center;
+	border: none;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	border-radius: 50%;
+	font-size: 0.9rem;
+	line-height: 1;
+	transition: background-color var(--transition-fast);
+}
+
+.tag-chip-remove:hover {
+	background: rgba(var(--accent-rgb), 0.2);
+}
+
+.tag-new-wrap {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.tag-new-wrap .form-input-sm {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+}
+
+@keyframes tag-chip-in {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
 }
 
 .upload-form {
