@@ -24,6 +24,9 @@ const postBackgroundControlsWrap = document.querySelector(
 const contentTextarea = document.getElementById("content");
 const contentUploadStatus = document.querySelector("[data-content-upload-status]");
 const markdownPreview = document.querySelector("[data-markdown-preview='true']");
+// 调试日志：检查元素是否正确获取
+console.log('[ScrollSync] contentTextarea:', contentTextarea);
+console.log('[ScrollSync] markdownPreview:', markdownPreview);
 const draftToolbar = document.querySelector("[data-draft-toolbar='true']");
 const draftStatus = document.querySelector("[data-draft-status='true']");
 const draftRestoreButton = document.querySelector("[data-draft-restore='true']");
@@ -2210,6 +2213,11 @@ function handlePreviewScroll() {
 
 contentTextarea?.addEventListener("scroll", handleEditorScroll);
 markdownPreviewBody?.addEventListener("scroll", handlePreviewScroll);
+
+// 调试日志：检查事件绑定
+console.log('[ScrollSync] Event listeners attached:');
+console.log('[ScrollSync] contentTextarea scroll listener:', !!contentTextarea);
+console.log('[ScrollSync] markdownPreviewBody scroll listener:', !!markdownPreviewBody);
 
 contentTextarea?.addEventListener("dragover", (event) => {
 	const file = getFirstImageFile(event.dataTransfer?.files);
