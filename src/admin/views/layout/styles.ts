@@ -1222,6 +1222,9 @@ h2 {
 
 .markdown-editor-shell .form-textarea {
 	min-height: 420px;
+	/* 启用独立滚动，支持同步滚动功能 */
+	overflow-y: auto;
+	scroll-behavior: smooth;
 }
 
 .markdown-preview-panel {
