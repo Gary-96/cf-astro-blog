@@ -1,4 +1,5 @@
 import { escapeAttribute, escapeHtml } from "@/lib/security";
+import { siteConfig } from "@/lib/types";
 
 interface LoginPageOptions {
 	error?: string;
@@ -8,6 +9,7 @@ interface LoginPageOptions {
 
 export function loginPage(options: LoginPageOptions = {}): string {
 	const { error, oauthEnabled = false, backgroundImageUrl } = options;
+	const siteName = siteConfig.name;
 	const hasBackgroundImage = Boolean(backgroundImageUrl);
 	const escapedBackgroundImageUrl = backgroundImageUrl
 		? escapeAttribute(backgroundImageUrl)
@@ -18,7 +20,7 @@ export function loginPage(options: LoginPageOptions = {}): string {
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>登录 · My Blog</title>
+	<title>登录 · ${siteName}</title>
 	<meta name="robots" content="noindex, nofollow" />
 	<script src="/theme.js"></script>
 	<style>
@@ -454,7 +456,7 @@ export function loginPage(options: LoginPageOptions = {}): string {
 					alt=""
 					class="entry-brand-logo"
 				/>
-				<span>My Blog</span>
+				<span>${siteName}</span>
 			</a>
 		</header>
 
@@ -492,7 +494,7 @@ export function loginPage(options: LoginPageOptions = {}): string {
 			</div>
 		</section>
 
-		<p class="entry-footer">My Blog &mdash; 后台入口</p>
+		<p class="entry-footer">${siteName} &mdash; 后台入口</p>
 	</main>
 </body>
 </html>`;
