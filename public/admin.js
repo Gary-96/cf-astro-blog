@@ -2147,6 +2147,47 @@ const handleEditorImageUpload = async (file) => {
 
 contentTextarea?.addEventListener("input", scheduleMarkdownPreview);
 
+// ─── Markdown 编辑器同步滚动 ────────────────────────────────────────────────
+const markdownEditorShell = document.querySelector(".markdown-editor-shell");
+const markdownPreviewBody = document.querySelector("[data-markdown-preview='true']");
+
+let isSyncingScroll = false;
+
+function syncMarkdownScroll(sourceScrollTop, sourceHeight, targetElement) {
+	if (isSyncingScroll || !targetElement) return;
+
+	isSyncingScroll = true;
+
+	const targetScrollHeight = targetElement.scrollHeight;
+	const targetClientHeight = targetElement.clientHeight;
+
+	// 计算滚动比例
+	const scrollRatio = sourceScrollTop / (sourceHeight - sourceClientHeight);
+	const maxTargetScroll = targetScrollHeight - targetClientHeight;
+
+	// 应用滚动位置
+	targetElement.scrollTop = scrollRatio * maxTargetScroll;
+
+	requestAnimationFrame(() => {
+		isSyncingScroll = false;
+	});
+}
+
+contentTextarea?.addEventListener("scroll", () => {
+	if (!markdownPreviewBody || isSyncingScroll) return;
+
+	const { scrollTop, scrollHeight, clientHeight } = contentTextarea;
+	syncMarkdownScroll(scrollTop, scrollHeight, markdownPreviewBody);
+});
+
+// 预览滚动反向同步到编辑器
+markdownPreviewBody?.addEventListener("scroll", () => {
+	if (!contentTextarea || isSyncingScroll) return;
+
+	const { scrollTop, scrollHeight, clientHeight } = markdownPreviewBody;
+	syncMarkdownScroll(scrollTop, scrollHeight, contentTextarea);
+});
+
 contentTextarea?.addEventListener("dragover", (event) => {
 	const file = getFirstImageFile(event.dataTransfer?.files);
 	if (!file) {
